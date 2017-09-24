@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/layout :: head">
+    <title th:text="#{view.users.title}">Welcome!</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    link href="../../../resources/css/bootstrap.min.css" rel="stylesheet" media="screen"
+    th:href="@{/resources/css/bootstrap.min.css}"/>
+    <link href="../../../resources/css/font-awesome.min.css" rel="stylesheet" media="screen"
+          th:href="@{/resources/css/font-awesome.min.css}"/>
+    <link href="../../../resources/css/navbar-fixed-side.css" rel="stylesheet" media="screen" th:href="@{/resources/css/navbar-fixed-side.css}"/>
+    <link href="../../../resources/css/scaleefect.css" rel="stylesheet" media="screen" th:href="@{/resources/css/scaleefect.css}"/>
+
+
+
+    <script src="../../../resources/js/jquery.min.js" th:src="@{/resources/js/jquery.min.js}"></script>
+    <link href="../../../resources/css/bootstrap-tokenfield.min.css" rel="stylesheet" media="screen"
+          th:href="@{/resources/css/bootstrap-tokenfield.min.css}"/>
+    <link href="../../../resources/css/tokenfield-typeahead.min.css" rel="stylesheet" media="screen"
+          th:href="@{/resources/css/tokenfield-typeahead.min.css}"/>
+    <script src="../../../resources/js/bootstrap-tokenfield.min.js"
+            th:src="@{/resources/js/bootstrap-tokenfield.min.js}"></script>
+</head>
+<body>
+<div th:replace="fragments/layout :: header"></div>
+
+<div class="container">
+    <div class="row">
+        <p class="lead text-center">
+            <span th:text="#{view.users.title}"></span>
+
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th th:text="#{users.table.email}"></th>
+                <th th:text="#{users.table.created}"></th>
+                <th th:text="#{users.table.expires}"></th>
+                <th th:text="#{users.table.locked}"></th>
+                <th th:text="#{users.table.role}"></th>
+                <th th:text="#{users.table.actions}"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${userList}">
+                <td th:text="${user.email}"></td>
+                <td th:text="${#dates.format(user.created, #messages.msg('app.dateformat'))}"></td>
+                <td th:text="${user.expires == null ? '-' : #dates.format(user.expires, #messages.msg('app.dateformat'))}"></td>
+                <td><input type="checkbox" th:checked="${user.locked}" disabled></td>
+                <td th:text="${user.role}"></td>
+                <td>
+                    <a href="#user" th:href="@{/user(id=${user.id})}" th:title="#{users.table.modify}"
+                       class="glyphicon glyphicon-pencil" name="action" value="edit"></a>
+
+                    <a href="#user" th:href="@{/user}"
+                       th:title="#{${user.locked} ? users.table.lock : users.table.unlock}"
+                       th:class="${user.locked ? 'fa fa-unlock' : 'fa fa-lock'}"
+                       style="padding-left: 5px"></a>
+                    <a href="#user" th:href="@{/user}" th:title="#{users.table.remove}"
+                       class="glyphicon glyphicon-remove" style="padding-left: 5px"> </a>
+
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<div th:replace="fragments/layout :: footer"></div>
+</body>
+</html>

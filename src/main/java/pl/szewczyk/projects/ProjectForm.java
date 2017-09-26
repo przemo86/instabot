@@ -78,10 +78,8 @@ public class ProjectForm implements java.io.Serializable {
         project.setHashtagSearch(this.hashtagSearch);
         project.setLike(this.like);
         project.setComment(this.comment);
-        Logger.getGlobal().severe("MED");
         if (project.getId() == null)
             project.setCreated(Instant.now());
-        Logger.getGlobal().severe("out");
         return project;
     }
 
@@ -180,5 +178,23 @@ public class ProjectForm implements java.io.Serializable {
 
     public void setInstagramAccount(String instagramAccount) {
         this.instagramAccount = instagramAccount;
+    }
+
+    @Override
+    public String toString() {
+        return "ProjectForm{" +
+                "name='" + name + '\'' +
+                ", customer='" + customer + '\'' +
+                ", instagramAccount='" + instagramAccount + '\'' +
+                ", status=" + status +
+                ", includeHashtags='" + includeHashtags + '\'' +
+                ", excludeHashtags='" + excludeHashtags + '\'' +
+                ", commentString='" + commentString + '\'' +
+                ", likeFrequency=" + likeFrequency +
+                ", commentFrequency=" + commentFrequency +
+                ", hashtagSearch=" + hashtagSearch +
+                ", like=" + like +
+                ", comment=" + comment +
+                '}';
     }
 }

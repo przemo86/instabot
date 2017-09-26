@@ -51,6 +51,7 @@ public class AccountService implements UserDetailsService {
     }
 
     private Authentication authenticate(Account account) {
+        System.out.println("AUTHENTICATE ME MAYBE?");
         return new UsernamePasswordAuthenticationToken(createUser(account), null, Collections.singleton(createAuthority(account)));
     }
 

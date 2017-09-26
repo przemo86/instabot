@@ -1,5 +1,6 @@
 package pl.szewczyk.projects;
 
+import org.jinstagram.entity.users.feed.MediaFeedData;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -9,7 +10,10 @@ import pl.szewczyk.instagram.InstaUser;
 import pl.szewczyk.instagram.InstagramUtils;
 
 import javax.persistence.EntityManager;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by przem on 20.09.2017.
@@ -35,7 +39,7 @@ public class ProjectLikeSchedule implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        System.out.println("AAAAAAAAAAAAAAAA");
+//        System.out.println("AAAAAAAAAAAAAAAA");
 
         Long id = jobExecutionContext.getJobDetail().getJobDataMap().getLong("projectId");
 
@@ -43,33 +47,32 @@ public class ProjectLikeSchedule implements Job {
             init();
             project = projectRepository.znajdz(id);
         }
-        System.out.println("" + project.getName());
-        System.out.println("" + project.getHashtagSearch());
-
-        if (HashtagSearchEnum.ALL.equals(project.getHashtagSearch())) {
-            Logger.getGlobal().severe("SEARCH ALL " + project.getIncludeHashtags().toString());
-        } else if (HashtagSearchEnum.ANY.equals(project.getHashtagSearch())) {
-            Logger.getGlobal().severe("SEARCH ANY " + project.getIncludeHashtags().toString());
-        } else {
-            Logger.getGlobal().severe("NONE " + project.getIncludeHashtags().toString());
-        }
-
-        Logger.getGlobal().severe("EXCLUDE " + project.getExcludeHashtags().toString());
-        Logger.getGlobal().severe("EM " + project.getInstagramAccount());
-
 
         InstaUser instaUser = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
-        Logger.getGlobal().severe("EM " + instaUser);
-        Logger.getGlobal().severe("" + instaUser.equals(null));
+
+        Map<String, List<MediaFeedData>> tags = new HashMap<>();
 
         for (String tag : project.getIncludeHashtags()) {
             try {
-                Logger.getGlobal().severe("TAG " + tag);
-                Logger.getGlobal().severe(instagramUtils.searchTag(tag, instaUser.getAccessToken()));
+
+                tags.put(tag, instagramUtils.searchTag(tag, instaUser.getAccessToken()));
             } catch (Exception e) {
-                Logger.getGlobal().severe("ERROR QUERY " + e.getMessage());
+                e.printStackTrace();
+                System.err.println(tag + " EXCEPTION " + e.getMessage());
 
             }
+        }
+
+
+        if (project.getHashtagSearch().equals(HashtagSearchEnum.ANY)) {
+            List<MediaFeedData> searches = tags.entrySet().stream()
+                    .flatMap(s -> {
+                        return s.getValue().stream();
+                    })
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            System.out.println("SIEZ " + searches.size());
         }
     }
 

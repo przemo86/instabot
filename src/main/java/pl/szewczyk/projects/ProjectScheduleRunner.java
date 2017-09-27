@@ -50,8 +50,8 @@ public class ProjectScheduleRunner {
 
         Logger.getGlobal().severe("INIT RUNNER :/");
 
-JobDataMap dataMap = new JobDataMap();
-dataMap.put("projectId", project.getId());
+        JobDataMap dataMap = new JobDataMap();
+        dataMap.put("projectId", project.getId());
         if (project.isComment()) {
             Logger.getGlobal().severe(String.valueOf(dataMap.getLong("projectId")));
             JobDetail job = newJob(ProjectCommentSchedule.class)

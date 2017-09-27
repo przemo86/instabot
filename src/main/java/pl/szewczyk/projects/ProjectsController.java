@@ -1,5 +1,6 @@
 package pl.szewczyk.projects;
 
+import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -38,6 +39,13 @@ public class ProjectsController {
 
     @GetMapping("projects")
     public String listProjects(Model model) {
+        try {
+            System.out.println("RESTARTOGN");
+            projectScheduleRunner.reset();
+        } catch (SchedulerException e) {
+            System.out.println("ERROR RESTARTING " + e.getMessage());
+        }
+
         model.addAttribute("projectList", projectRepository.findAll());
 
         return "home/projects";
@@ -65,9 +73,7 @@ public class ProjectsController {
     public String project(@ModelAttribute ProjectForm projectForm, Errors errors, HttpServletRequest request) {
 
         Project project = (Project) request.getSession().getAttribute("project");
-        System.out.println("PPPPPPPPPPPPPPPPPPPP " + projectForm + "  " + project);
         project = projectForm.toEntity(project);
-        System.out.println("PPPPPPPPPPPPPPPPPPPP saved" + project.getId().toString());
         projectRepository.save(project);
         return "redirect:projects";
     }

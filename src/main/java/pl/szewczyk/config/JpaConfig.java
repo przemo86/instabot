@@ -65,6 +65,9 @@ class JpaConfig {
             e.printStackTrace();
         }
 
+        config.setMinimumIdle(2);
+        config.setMaximumPoolSize(2);
+
 
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -91,6 +94,7 @@ class JpaConfig {
         jpaProperties.put(Environment.SHOW_SQL, showSql);
         jpaProperties.put(Environment.FORMAT_SQL, formatSql);
         jpaProperties.put(Environment.USE_SQL_COMMENTS, useSqlComments);
+        jpaProperties.put(Environment.POOL_SIZE, useSqlComments);
 
         entityManagerFactoryBean.setJpaProperties(jpaProperties);
 

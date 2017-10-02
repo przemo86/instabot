@@ -56,7 +56,8 @@ class JpaConfig {
             dbUri = new URI(System.getenv("DATABASE_URL"));
             String user = dbUri.getUserInfo().split(":")[0];
             String pass = dbUri.getUserInfo().split(":")[1];
-            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
+            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath()+"?sslmode=require";
+            System.out.println("DBURL " + dbUrl);
             config.setJdbcUrl(dbUrl);
             config.setUsername(user);
             config.setPassword(pass);

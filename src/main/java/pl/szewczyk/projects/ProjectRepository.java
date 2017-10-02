@@ -12,16 +12,16 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     Project znajdz(@Param("id") Long id);
 
 @Query(value = "select count(*) " +
-        "from media m join " +
-        "statistics_media sm on m.id = sm.media_id join " +
-        "statistics s on s.id = sm.statistic_id " +
+        "from instabot.media m join " +
+        "instabot.statistics_media sm on m.id = sm.media_id join " +
+        "instabot.statistics s on s.id = sm.statistic_id " +
         "where m.mediaid = :mediaid and s.projectid = :projectid and s.kind = :kind", nativeQuery = true)
     Long countMediaId(@Param("mediaid") String mediaid, @Param("kind") Character kind, @Param("projectid") Project project);
 
     @Query(value = "select count(*) " +
-            "from media m join " +
-            "statistics_media sm on m.id = sm.media_id join " +
-            "statistics s on s.id = sm.statistic_id " +
+            "from instabot.media m join " +
+            "instabot.statistics_media sm on m.id = sm.media_id join " +
+            "instabot.statistics s on s.id = sm.statistic_id " +
             "where s.projectid = :projectid and s.kind = :kind", nativeQuery = true)
     Long count(@Param("kind") Character kind, @Param("projectid") Project project);
 }

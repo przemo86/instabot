@@ -60,7 +60,7 @@ public class ProjectService {
     public boolean existsMedia(Project project, String mediaId) {
         return Long.valueOf(em.createNativeQuery(
                 "select count(*) " +
-                        "from media m join " +
+                        "from instabot.media m join " +
                         "statistics_media sm on m.id = sm.media_id join " +
                         "statistics s on s.id = sm.statistic_id " +
                         "where m.mediaid = :mediaid and s.projectid = :projectid")

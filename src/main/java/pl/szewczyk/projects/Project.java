@@ -33,11 +33,11 @@ public class Project implements java.io.Serializable {
     private Account owner;
 
     @ElementCollection
-    @CollectionTable(name = "includetags")
+    @CollectionTable(name = "includetags", schema = "instabot")
        private Set<String> includeHashtags = new HashSet<>();
 
     @ElementCollection
-    @CollectionTable(name = "excludetags")
+    @CollectionTable(name = "excludetags", schema = "instabot")
     private Set<String> excludeHashtags = new HashSet<>();
 
     private String commentString;

@@ -29,7 +29,7 @@ public class Media {
     private String link;
 
     @ElementCollection
-    @CollectionTable(name = "tags")
+    @CollectionTable(name = "tags", schema = "instabot")
     private Set<String> tags = new HashSet<>();
 
 

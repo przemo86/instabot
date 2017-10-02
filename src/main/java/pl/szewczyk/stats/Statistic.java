@@ -30,11 +30,11 @@ public class Statistic {
     private Instant time;
 
     @ElementCollection
-    @CollectionTable(name = "stat_includetags")
+    @CollectionTable(name = "stat_includetags", schema = "instabot")
     private Set<String> includeHashtags = new HashSet<>();
 
     @ElementCollection
-    @CollectionTable(name = "stat_excludetags")
+    @CollectionTable(name = "stat_excludetags", schema = "instabot")
     private Set<String> excludeHashtags = new HashSet<>();
 
     private String commentString;

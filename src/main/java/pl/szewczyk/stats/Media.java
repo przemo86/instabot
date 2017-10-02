@@ -11,7 +11,7 @@ import java.util.Set;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "media", indexes = {@Index(name = "mediaid", columnList = "mediaId")})
+@Table(name = "media", schema = "instabot", indexes = {@Index(name = "mediaid", columnList = "mediaId")})
 public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_seq")

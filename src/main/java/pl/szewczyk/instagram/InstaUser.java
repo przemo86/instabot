@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Created by przem on 16.09.2017.
  */
 @Entity
-@Table(name = "instauser")
+@Table(name = "instauser", schema = "instabot")
 public class InstaUser implements Serializable {
 
     @Id

@@ -15,7 +15,7 @@ import java.util.Set;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "statistics", indexes = {@Index(name = "statistic_project_idx", columnList = "kind,projectid")})
+@Table(name = "statistics", schema = "instabot", indexes = {@Index(name = "statistic_project_idx", columnList = "kind,projectid")})
 public class Statistic {
 
     @Id

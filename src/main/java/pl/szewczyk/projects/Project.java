@@ -9,7 +9,7 @@ import java.util.Set;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "project")
+@Table(name = "project", schema = "instabot")
 public class Project implements java.io.Serializable {
 
     @Id

@@ -3,6 +3,7 @@
 <head>
     <title>Signup</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="../../../resources/js/jquery.min.js" th:src="@{/resources/js/jquery.min.js}"></script>
     <link href="../../../resources/css/bootstrap.min.css" rel="stylesheet" media="screen"
           th:href="@{/resources/css/bootstrap.min.css}"/>
     <link href="../../../resources/css/font-awesome.min.css" rel="stylesheet" media="screen"
@@ -13,7 +14,6 @@
           th:href="@{/resources/css/scaleefect.css}"/>
 
 
-    <script src="../../../resources/js/jquery.min.js" th:src="@{/resources/js/jquery.min.js}"></script>
     <link href="../../../resources/css/bootstrap-tokenfield.min.css" rel="stylesheet" media="screen"
           th:href="@{/resources/css/bootstrap-tokenfield.min.css}"/>
     <link href="../../../resources/css/tokenfield-typeahead.min.css" rel="stylesheet" media="screen"
@@ -89,8 +89,9 @@
                     <select th:value="*{role}" class="media-middle form-control input-control" id="role"
                             th:placeholder="#{user.role}"
                             th:field="*{role}">
-                        <option value="ROLE_ADMIN">admin</option>
-                        <option value="ROLE_USER">użytkownik</option>
+                        <option th:text="#{project.instagram.account.choose}" value="" disabled></option>
+                        <option th:each="role : ${T(pl.szewczyk.account.Role).values()}"
+                                th:text="${role.role}" th:value="${role}"></option>
                     </select>
                     <span class="help-block" th:if="${#fields.hasErrors('role')}"
                           th:errors="*{role}">Incorrect password</span>

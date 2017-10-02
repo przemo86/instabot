@@ -66,13 +66,13 @@
 
 
                 <li>
-                    <a href="/signin" th:href="@{/signin}">
+                    <a href="/signin" th:href="@{/signin}" th:if="${#authorization.expression('!isAuthenticated()')}">
                         <span class="glyphicon glyphicon-log-in" aria-hidden="true">&nbsp;</span><span
                             th:text="#{navigation.signin}"></span>
                     </a>
                 </li>
                 <li>
-                    <a href="/logout" th:href="@{#}" onclick="$('#form').submit();">
+                    <a href="#" th:href="@{#}" onclick="$('#form').submit();">
                         <span class="glyphicon glyphicon-log-in" aria-hidden="true">&nbsp;</span><span
                             th:text="#{navigation.signout}"></span>
                     </a>

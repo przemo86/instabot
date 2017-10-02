@@ -1,4 +1,4 @@
-package pl.szewczyk.account;
+package pl.szewczyk.projects;
 
 import org.springframework.stereotype.Component;
 
@@ -16,9 +16,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({ElementType.TYPE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = PasswordCorrectValidator.class)
+@Constraint(validatedBy = CommentCorrectValidator.class)
 @Documented
-public @interface PasswordCorrect {
+public @interface CommentCorrect {
 
     String message() default "";
 
@@ -28,28 +28,32 @@ public @interface PasswordCorrect {
 }
 
 @Component
-class PasswordCorrectValidator implements ConstraintValidator<PasswordCorrect, Object> {
+class CommentCorrectValidator implements ConstraintValidator<CommentCorrect, Object> {
 
-    Logger logger = Logger.getLogger(PasswordCorrectValidator.class.getName());
+    Logger logger = Logger.getLogger(CommentCorrectValidator.class.getName());
 
-    public PasswordCorrectValidator() {
+    public CommentCorrectValidator() {
 
     }
 
     @Override
-    public void initialize(PasswordCorrect passwordCorrect) {
+    public void initialize(CommentCorrect passwordCorrect) {
         logger.severe("initialize");
     }
 
     @Override
     public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
-        logger.severe("valid?");
-        UserForm account = (UserForm) o;
-        if (account.getPassword().equals(account.getRepeatPassword())) {
-            logger.severe("VALID");
+
+        ProjectForm projectForm = (ProjectForm) o;
+        if (projectForm.isComment()) {
+            if (projectForm.getCommentFrequency() != null)
+                if (projectForm.getCommentString() != null)
+                    if (!projectForm.getCommentString().equals("")) {
+                        return true;
+                    }
+        } else {
             return true;
         }
-        logger.severe("INVALID");
         return false;
     }
 

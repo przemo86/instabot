@@ -18,6 +18,8 @@ public class StatsController {
         return "stats";
     }
 
+
+
     @GetMapping("stats")
     public String listProjects(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

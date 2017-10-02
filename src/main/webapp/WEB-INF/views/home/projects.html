@@ -24,14 +24,14 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="project : ${projectList}">
+            <tr th:each="project : ${projectList}" th:class="${#authentication.name.equals(project.owner?.email) ? (project.status ? 'success' : 'warning') : 'active'}">
                 <td th:text="${project.name}"></td>
                 <td th:text="${#dates.format(project.created, #messages.msg('app.dateformat'))}"></td>
                 <td th:text="${project.customer}"></td>
                 <td th:text="#{${project.status} ? projects.table.active : projects.table.inactive}"></td>
-                <td>Tylko ja</td>
+                <td th:text="${project.owner.email}">-</td>
                 <td>
-                    <a th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit" th:value="${project.id}" th:text="#{projects.table.edit}"></a>
+                    <a th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')') or #authentication.name.equals(project.owner?.email)}" th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit" th:value="${project.id}" th:text="#{projects.table.edit}"></a>
                 </td>
             </tr>
 

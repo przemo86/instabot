@@ -4,6 +4,7 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 import pl.szewczyk.account.Account;
 import pl.szewczyk.account.EmailExists;
+import pl.szewczyk.account.Role;
 
 public class SignupForm {
 
@@ -36,6 +37,6 @@ public class SignupForm {
 	}
 
 	public Account createAccount() {
-        return new Account(getEmail(), getPassword(), "ROLE_USER");
+        return new Account(getEmail(), getPassword(), Role.ROLE_USER);
 	}
 }

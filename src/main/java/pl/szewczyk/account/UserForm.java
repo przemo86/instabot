@@ -23,7 +23,7 @@ public class UserForm {
     private String expires;
     private boolean locked;
     @NotNull
-    private String role;
+    private Role role;
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -69,11 +69,11 @@ public class UserForm {
         this.locked = locked;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 
@@ -87,7 +87,7 @@ public class UserForm {
 
 
     public Account createAccount() {
-        Account account = new Account(getEmail(), getPassword(), "ROLE_USER");
+        Account account = new Account(getEmail(), getPassword(), Role.ROLE_USER);
         account.setLocked(isLocked());
 
         try {

@@ -1,5 +1,7 @@
 package pl.szewczyk.projects;
 
+import pl.szewczyk.account.Account;
+
 import javax.persistence.*;
 import java.time.Instant;
 import java.util.HashSet;
@@ -25,6 +27,10 @@ public class Project implements java.io.Serializable {
     private String instagramAccount;
 
     private boolean status = false;
+
+    @OneToOne
+    @JoinColumn(name = "owner_id")
+    private Account owner;
 
     @ElementCollection
     @CollectionTable(name = "includetags")
@@ -164,5 +170,13 @@ public class Project implements java.io.Serializable {
 
     public void setInstagramAccount(String instagramAccount) {
         this.instagramAccount = instagramAccount;
+    }
+
+    public Account getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Account owner) {
+        this.owner = owner;
     }
 }

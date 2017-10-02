@@ -1,4 +1,4 @@
-package pl.szewczyk.account;
+package pl.szewczyk.projects;
 
 import org.springframework.stereotype.Component;
 
@@ -16,9 +16,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({ElementType.TYPE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = PasswordCorrectValidator.class)
+@Constraint(validatedBy = LikeCorrectValidator.class)
 @Documented
-public @interface PasswordCorrect {
+public @interface LikeCorrect {
 
     String message() default "";
 
@@ -28,25 +28,28 @@ public @interface PasswordCorrect {
 }
 
 @Component
-class PasswordCorrectValidator implements ConstraintValidator<PasswordCorrect, Object> {
+class LikeCorrectValidator implements ConstraintValidator<LikeCorrect, Object> {
 
-    Logger logger = Logger.getLogger(PasswordCorrectValidator.class.getName());
+    Logger logger = Logger.getLogger(LikeCorrectValidator.class.getName());
 
-    public PasswordCorrectValidator() {
+    public LikeCorrectValidator() {
 
     }
 
     @Override
-    public void initialize(PasswordCorrect passwordCorrect) {
+    public void initialize(LikeCorrect passwordCorrect) {
         logger.severe("initialize");
     }
 
     @Override
     public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
         logger.severe("valid?");
-        UserForm account = (UserForm) o;
-        if (account.getPassword().equals(account.getRepeatPassword())) {
-            logger.severe("VALID");
+        ProjectForm projectForm = (ProjectForm) o;
+        if (projectForm.isLike()) {
+            if (projectForm.getLikeFrequency() != null) {
+                return true;
+            }
+        } else {
             return true;
         }
         logger.severe("INVALID");

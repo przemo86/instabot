@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.method.P;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
 import pl.szewczyk.instagram.InstaConstants;
 import pl.szewczyk.instagram.InstaUser;
 
@@ -25,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
+import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -52,7 +54,6 @@ public class AccountController {
     }
 
     @GetMapping("/users")
-    @Secured("ROLE_ADMIN")
     public String listUsers(Model model) {
         model.addAttribute("userList", accountRepository.findAll());
         return "home/users";
@@ -61,14 +62,14 @@ public class AccountController {
     private Logger logger = Logger.getLogger(Account.class.getName());
 
     @GetMapping("/user")
-    @Secured("ROLE_ADMIN")
-    public String user(Model model, @RequestParam(value = "id") Long id,
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @accountRepository.findOneByEmail(#principal.name).id == #id")
+    public String user(Model model, @P("id") @RequestParam(value = "id") Long id,
                        @RequestParam(value = "code", required = false) String code,
                        @RequestParam(value = "error", required = false) String error,
                        @RequestParam(value = "error_reason", required = false) String error_reason,
                        @RequestParam(value = "error_description", required = false) String error_description,
-                       HttpServletRequest request) {
-        logger.severe("aaaaaaaaaaaaaaaaaaa");
+                       HttpServletRequest request, @P("principal") Principal principal) {
+
         Account account = em.createQuery("select a from Account a left join fetch a.instaUsers where a.id = :id", Account.class).setParameter("id", id).getSingleResult();
         request.getSession().setAttribute("account", account);
         logger.severe("11");
@@ -87,9 +88,6 @@ public class AccountController {
         logger.severe("2");
         if (Objects.nonNull(code) && !code.equals("")) {
             logger.severe("CALLING INSTA");
-
-
-            RestTemplate restTemplate = new RestTemplate();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -146,12 +144,12 @@ public class AccountController {
                 instaUser.setWebsite(jsonObject.getJSONObject("user").getString("website"));
                 instaUser.setBusiness(jsonObject.getJSONObject("user").getBoolean("is_business"));
                 logger.severe("CLOSE 2");
-                if (userForm.getInstaUsers().contains(instaUser)){
+                if (userForm.getInstaUsers().contains(instaUser)) {
                     userForm.getInstaUsers().remove(instaUser);
                 }
                 userForm.getInstaUsers().add(instaUser);
 
-                if (account.getInstaUsers().contains(instaUser)){
+                if (account.getInstaUsers().contains(instaUser)) {
                     account.getInstaUsers().remove(instaUser);
                 }
                 account.getInstaUsers().add(instaUser);
@@ -185,28 +183,27 @@ public class AccountController {
         if (account != null) {
             if (!account.getEmail().equals(userForm.getEmail())) {
                 logger.severe("NIBY ZE ERROR?");
-
                 return "home/userForm";
             }
         }
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-                logger.severe("errors count " + errors.getErrorCount() + "   " + errors.hasErrors());
-                if (Objects.nonNull(userForm.getExpires()) && !userForm.getExpires().equals(""))
-                    try {
-                        account.setExpires(sdf.parse(userForm.getExpires()));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
+        logger.severe("errors countMediaId " + errors.getErrorCount() + "   " + errors.hasErrors());
+        if (Objects.nonNull(userForm.getExpires()) && !userForm.getExpires().equals(""))
+            try {
+                account.setExpires(sdf.parse(userForm.getExpires()));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
 
-                account.setLocked(userForm.isLocked());
+        account.setLocked(userForm.isLocked());
 
-                account.setPassword(passwordEncoder.encode(userForm.getPassword()));
-                logger.severe("tostring = " + userForm.toString());
+        account.setPassword(passwordEncoder.encode(userForm.getPassword()));
+        logger.severe("tostring = " + userForm.toString());
 
-                accountRepository.save(account);
+        accountRepository.save(account);
 
-                return "redirect:users";
+        return "redirect:users";
 
 
     }
@@ -221,7 +218,7 @@ public class AccountController {
         Account account = (Account) request.getSession().getAttribute("account");
 
 
-        return "redirect:https://www.instagram.com/oauth/authorize/?client_id="+ InstaConstants.ClientID+"&redirect_uri=" +
+        return "redirect:https://www.instagram.com/oauth/authorize/?client_id=" + InstaConstants.ClientID + "&redirect_uri=" +
                 request.getRequestURL().toString() + "?id=" + account.getId()
                 + "&response_type=code&scope=public_content+likes+comments";
     }

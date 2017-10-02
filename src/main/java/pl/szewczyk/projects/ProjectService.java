@@ -1,6 +1,8 @@
 package pl.szewczyk.projects;
 
 import org.springframework.stereotype.Component;
+import pl.szewczyk.account.Account;
+import pl.szewczyk.account.Role;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -12,7 +14,6 @@ public class ProjectService {
 
     @PersistenceContext(type = PersistenceContextType.TRANSACTION)
     private EntityManager em;
-
 
 
     protected void initialize() {
@@ -45,4 +46,26 @@ public class ProjectService {
     public List<Project> listActiveProjects() {
         return em.createQuery("select p from Project p where p.status = true ").getResultList();
     }
+
+    public List<Project> listUserProjects(Account account) {
+        if (account.getRole().equals(Role.ROLE_ADMIN)) {
+            System.out.println("SEARCH ALL");
+            return listProjects();
+        } else {
+            System.out.println("SEARCH FOR PROJECTS");
+            return em.createQuery("select p from Project p join p.owner a where a.id = :account").setParameter("account", account.getId()).getResultList();
+        }
+    }
+
+    public boolean existsMedia(Project project, String mediaId) {
+        return Long.valueOf(em.createNativeQuery(
+                "select count(*) " +
+                        "from media m join " +
+                        "statistics_media sm on m.id = sm.media_id join " +
+                        "statistics s on s.id = sm.statistic_id " +
+                        "where m.mediaid = :mediaid and s.projectid = :projectid")
+                .setParameter("mediaid", mediaId)
+                .setParameter("projectid", project.getId()).getSingleResult().toString()) > 0;
+    }
+
 }

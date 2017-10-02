@@ -11,7 +11,7 @@ import java.util.Set;
  */
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "media")
+@Table(name = "media", indexes = {@Index(name = "mediaid", columnList = "mediaId")})
 public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_seq")
@@ -19,8 +19,8 @@ public class Media {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "stat_id")
     private Statistic statistic;
+
 
     private String mediaId;
 

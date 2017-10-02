@@ -24,7 +24,8 @@ public class Account implements java.io.Serializable {
 	
 	private String password;
 
-	private String role = "ROLE_USER";
+	@Enumerated(EnumType.STRING)
+	private Role role = Role.ROLE_USER;
 
 	private Date created;
 
@@ -32,14 +33,14 @@ public class Account implements java.io.Serializable {
 
 	private boolean locked = false;
 
-	@OneToMany
+	@ManyToMany
 	private Set<InstaUser> instaUsers = new HashSet<>();
 
     protected Account() {
 
 	}
 	
-	public Account(String email, String password, String role) {
+	public Account(String email, String password, Role role) {
 		this.email = email;
 		this.password = password;
 		this.role = role;
@@ -66,11 +67,11 @@ public class Account implements java.io.Serializable {
 		this.password = password;
 	}
 
-	public String getRole() {
+	public Role getRole() {
 		return role;
 	}
 
-	public void setRole(String role) {
+	public void setRole(Role role) {
 		this.role = role;
 	}
 

@@ -15,7 +15,7 @@ import java.util.Set;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "statistics")
+@Table(name = "statistics", indexes = {@Index(name = "statistic_project_idx", columnList = "kind,projectid")})
 public class Statistic {
 
     @Id
@@ -30,11 +30,11 @@ public class Statistic {
     private Instant time;
 
     @ElementCollection
-    @CollectionTable(name = "includetags")
+    @CollectionTable(name = "stat_includetags")
     private Set<String> includeHashtags = new HashSet<>();
 
     @ElementCollection
-    @CollectionTable(name = "excludetags")
+    @CollectionTable(name = "stat_excludetags")
     private Set<String> excludeHashtags = new HashSet<>();
 
     private String commentString;
@@ -42,14 +42,9 @@ public class Statistic {
     @Enumerated(EnumType.STRING)
     private HashtagSearchEnum hashtagSearch;
 
-    @Column(name = "_like")
-    private boolean like;
+    private Character kind;
 
-    private boolean comment;
-
-
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "statistic", targetEntity = Media.class)
-    @JoinColumn(referencedColumnName = "stat_id")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Media.class, orphanRemoval = true, cascade = CascadeType.ALL)
     private Set<Media> media = new HashSet<>();
 
     public Statistic(Project project, Set<MediaFeedData> mediaFeedData) {
@@ -57,8 +52,6 @@ public class Statistic {
         this.time = Instant.now();
 
         this.project = project;
-        this.comment = project.isComment();
-        this.like = project.isLike();
         this.commentString = project.getCommentString();
         this.includeHashtags = new HashSet<>(project.getIncludeHashtags());
         this.excludeHashtags = new HashSet<>(project.getExcludeHashtags());
@@ -125,20 +118,19 @@ public class Statistic {
         this.hashtagSearch = hashtagSearch;
     }
 
-    public boolean isLike() {
-        return like;
+    public Character getKind() {
+        return kind;
     }
 
-    public void setLike(boolean like) {
-        this.like = like;
+    public void setKind(Character kind) {
+        this.kind = kind;
     }
 
-    public boolean isComment() {
-        return comment;
+    public Set<Media> getMedia() {
+        return media;
     }
 
-    public void setComment(boolean comment) {
-        this.comment = comment;
+    public void setMedia(Set<Media> media) {
+        this.media = media;
     }
-
 }

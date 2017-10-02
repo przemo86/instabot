@@ -17,9 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
+import java.security.Principal;
 import java.util.Collections;
 
-@Service
+@Service("accountService")
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 @SessionAttributes("user")
 public class AccountService implements UserDetailsService {
@@ -46,12 +47,17 @@ public class AccountService implements UserDetailsService {
         return createUser(account);
     }
 
+    public int test(Principal pr) {
+        System.out.println("+++++++++++++" + accountRepository.findOneByEmail(pr.getName()).getId().intValue());
+        return accountRepository.findOneByEmail(pr.getName()).getId().intValue();
+    }
+
     public void signin(Account account) {
+        System.out.println("-------------------------SIGNIN " + account.getId());
         SecurityContextHolder.getContext().setAuthentication(authenticate(account));
     }
 
     private Authentication authenticate(Account account) {
-        System.out.println("AUTHENTICATE ME MAYBE?");
         return new UsernamePasswordAuthenticationToken(createUser(account), null, Collections.singleton(createAuthority(account)));
     }
 
@@ -60,7 +66,7 @@ public class AccountService implements UserDetailsService {
     }
 
     private GrantedAuthority createAuthority(Account account) {
-        return new SimpleGrantedAuthority(account.getRole());
+        return new SimpleGrantedAuthority(account.getRole().getRole());
     }
 
 }

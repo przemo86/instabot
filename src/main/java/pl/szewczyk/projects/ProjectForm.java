@@ -1,5 +1,7 @@
 package pl.szewczyk.projects;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -7,17 +9,23 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
+@LikeCorrect
+@CommentCorrect
 public class ProjectForm implements java.io.Serializable {
 
+    @NotNull(message = "pole nie może być puste")
     private String name;
 
+    @NotNull(message = "pole nie może być puste")
     private String customer;
 
+    @NotNull(message = "Nie wybrano konta instagram")
     private String instagramAccount;
 
     private boolean status = false;
 
+    @NotNull
+    @Size(min = 5, message = "Podaj hashtagi występujące")
     private String includeHashtags;
 
     private String excludeHashtags;
@@ -28,6 +36,7 @@ public class ProjectForm implements java.io.Serializable {
 
     private FrequencyEnum commentFrequency;
 
+    @NotNull(message = "Wybierz rodzaj poszukiwania hashtagów")
     private HashtagSearchEnum hashtagSearch;
 
     private boolean like;

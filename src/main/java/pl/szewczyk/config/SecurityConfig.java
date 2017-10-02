@@ -15,8 +15,8 @@ import org.springframework.security.web.authentication.rememberme.TokenBasedReme
 import pl.szewczyk.account.AccountService;
 
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true)
+@EnableWebSecurity(debug = true)
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired

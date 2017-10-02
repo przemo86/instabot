@@ -2,6 +2,7 @@ package pl.szewczyk.projects;
 
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,7 @@ import pl.szewczyk.instagram.InstaUser;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 /**
  * Created by przem on 11.09.2017.
@@ -37,16 +39,10 @@ public class ProjectsController {
     }
 
 
+
     @GetMapping("projects")
     public String listProjects(Model model) {
-        try {
-            System.out.println("RESTARTOGN");
-            projectScheduleRunner.reset();
-        } catch (SchedulerException e) {
-            System.out.println("ERROR RESTARTING " + e.getMessage());
-        }
-
-        model.addAttribute("projectList", projectRepository.findAll());
+        model.addAttribute("projectList", projectRepository.findAll(new Sort(Sort.Direction.ASC, "name")));
 
         return "home/projects";
     }
@@ -70,11 +66,24 @@ public class ProjectsController {
     }
 
     @PostMapping(value = "project")
-    public String project(@ModelAttribute ProjectForm projectForm, Errors errors, HttpServletRequest request) {
+    public String project(@Valid @ModelAttribute ProjectForm projectForm, Errors errors, HttpServletRequest request) {
 
         Project project = (Project) request.getSession().getAttribute("project");
         project = projectForm.toEntity(project);
         projectRepository.save(project);
+
+        System.out.println("SAVING PROJECT");
+
+        if (project.isStatus()) {
+            projectScheduleRunner.startProject(project);
+        } else {
+            try {
+                projectScheduleRunner.interruptJob(project);
+            } catch (SchedulerException e) {
+                e.printStackTrace();
+            }
+        }
+
         return "redirect:projects";
     }
 }

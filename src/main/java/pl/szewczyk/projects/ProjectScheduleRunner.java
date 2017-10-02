@@ -1,12 +1,17 @@
 package pl.szewczyk.projects;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import static org.quartz.JobBuilder.newJob;
@@ -24,13 +29,10 @@ public class ProjectScheduleRunner {
 
     private Scheduler scheduler;
 
-    public void reset() throws SchedulerException {
-        System.out.println("RESET");
-        scheduler.shutdown();
+    private Set<TriggerKey> currentJobs = new HashSet<>();
 
-        init();
-        System.out.println("complete");
-    }
+    private static final String COMMENT_APPEND = "_comment";
+    private static final String LIKE_APPEND = "_like";
 
     @PostConstruct
     public void init() throws SchedulerException {
@@ -46,41 +48,65 @@ public class ProjectScheduleRunner {
         }
     }
 
-    public void addJob(Project project) throws SchedulerException, InvocationTargetException, IllegalAccessException {
+    @PreDestroy
+    public void shutdown() {
+        try {
+            System.out.println("SHUTDOWN");
+            scheduler.shutdown(false);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+    }
 
-        Logger.getGlobal().severe("INIT RUNNER :/");
+    public void interruptJob(Project project) throws SchedulerException {
+        if (currentJobs.contains(TriggerKey.triggerKey(project.getId() + LIKE_APPEND))) {
+            scheduler.unscheduleJob(TriggerKey.triggerKey(project.getId() + LIKE_APPEND));
+            scheduler.deleteJob(JobKey.jobKey(project.getId() + LIKE_APPEND));
+            currentJobs.remove(TriggerKey.triggerKey(project.getId() + LIKE_APPEND));
+        }
+        if (currentJobs.contains(TriggerKey.triggerKey(project.getId() + COMMENT_APPEND))) {
+            scheduler.unscheduleJob(TriggerKey.triggerKey(project.getId() + COMMENT_APPEND));
+            scheduler.deleteJob(JobKey.jobKey(project.getId() + COMMENT_APPEND));
+            currentJobs.remove(TriggerKey.triggerKey(project.getId() + COMMENT_APPEND));
+        }
+
+
+    }
+
+    private void addJob(Project project) throws SchedulerException, InvocationTargetException, IllegalAccessException {
+
+        Logger.getGlobal().severe("Add jobs for '" + project.getName() + "'");
 
         JobDataMap dataMap = new JobDataMap();
         dataMap.put("projectId", project.getId());
-        if (project.isComment()) {
-            Logger.getGlobal().severe(String.valueOf(dataMap.getLong("projectId")));
-            JobDetail job = newJob(ProjectCommentSchedule.class)
+        if (project.isComment() && project.getCommentFrequency() != null && !currentJobs.contains(TriggerKey.triggerKey(project.getId() + COMMENT_APPEND))) {
+            dataMap.put("kind", 'C');
+            JobDetail job = newJob(ProjectCommentJob.class)
                     .usingJobData(dataMap)
-                    .withIdentity(project.getName() + "_job", "comments")
+                    .withIdentity(project.getId() + COMMENT_APPEND)
                     .build();
 
             Trigger trigger = newTrigger()
-                    .withIdentity(project.getName() + "_trigger", "comments")
+                    .withIdentity(project.getId() + COMMENT_APPEND)
                     .startNow()
                     .withSchedule(
-
                             simpleSchedule()
                                     .withIntervalInSeconds(3600 / project.getCommentFrequency().getFrequency())
                                     .repeatForever())
                     .build();
-
-
             scheduler.scheduleJob(job, trigger);
+            currentJobs.add(trigger.getKey());
         }
-        if (project.isLike()) {
-            JobDetail job = newJob(ProjectLikeSchedule.class)
+        if (project.isLike() && project.getLikeFrequency() != null && !currentJobs.contains(TriggerKey.triggerKey(project.getId() + LIKE_APPEND))) {
+            dataMap.put("kind", 'L');
+            JobDetail job = newJob(ProjectLikeJob.class)
                     .usingJobData(dataMap)
-                    .withIdentity(project.getName() + "_job", "likes")
+                    .withIdentity(project.getId() + LIKE_APPEND)
                     .build();
 
 
             Trigger trigger = newTrigger()
-                    .withIdentity(project.getName() + "_trigger", "likes")
+                    .withIdentity(project.getId() + LIKE_APPEND)
                     .startNow()
                     .withSchedule(
 
@@ -91,9 +117,35 @@ public class ProjectScheduleRunner {
 
 
             scheduler.scheduleJob(job, trigger);
+            currentJobs.add(trigger.getKey());
         }
-        Logger.getGlobal().severe("Started ? :/");
+        Logger.getGlobal().severe("Started for project '" + project.getName() + "'");
     }
 
+    public void startProject(Project project) {
+        System.out.println("START PROJECT");
+        try {
+            addJob(project);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public Pair<JobDetail, Trigger> getJobLike(Project project) throws SchedulerException {
+        JobDetail jobDetail = scheduler.getJobDetail(JobKey.jobKey(project.getId() + LIKE_APPEND));
+        Trigger trigger = scheduler.getTrigger(TriggerKey.triggerKey(project.getId() + LIKE_APPEND));
+
+        return new ImmutablePair<>(jobDetail, trigger);
+    }
+
+    public Pair<JobDetail, Trigger> getJobComment(Project project) throws SchedulerException {
+        JobDetail jobDetail = scheduler.getJobDetail(JobKey.jobKey(project.getId() + COMMENT_APPEND));
+        Trigger trigger = scheduler.getTrigger(TriggerKey.triggerKey(project.getId() + COMMENT_APPEND));
+
+        return new ImmutablePair<>(jobDetail, trigger);
+    }
 }

@@ -15,7 +15,7 @@ import java.util.Set;
 public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_seq")
-    @SequenceGenerator(name = "media_seq", sequenceName = "media_seq", allocationSize = 1)
+    @SequenceGenerator(name = "media_seq", sequenceName = "media_seq", allocationSize = 1, schema = "instabot")
     private Long id;
 
     @ManyToOne

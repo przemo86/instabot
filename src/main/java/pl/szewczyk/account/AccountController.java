@@ -4,7 +4,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -176,7 +175,6 @@ public class AccountController {
     }
 
     @PostMapping(path = "user", params = "save")
-    @Secured("ROLE_ADMIN")
     public String save(@Valid @ModelAttribute UserForm userForm, Errors errors, HttpServletRequest request) {
         logger.severe("SAVE");
         Account account = (Account) request.getSession().getAttribute("account");
@@ -209,11 +207,7 @@ public class AccountController {
     }
 
     @PostMapping(path = "user", params = "insta")
-    @Secured("ROLE_ADMIN")
-    public String insta(//@RequestParam(required=false, value="save") String save,
-//                        @RequestParam(required=false, value="insta") String insta,
-
-                        @ModelAttribute UserForm userForm, Errors errors, HttpServletRequest request) {
+    public String insta(@ModelAttribute UserForm userForm, HttpServletRequest request) {
 
         Account account = (Account) request.getSession().getAttribute("account");
 

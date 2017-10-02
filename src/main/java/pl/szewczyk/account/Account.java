@@ -14,7 +14,7 @@ public class Account implements java.io.Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator="user_seq")
-	@SequenceGenerator(name="user_seq", sequenceName="user_seq", allocationSize=1)
+	@SequenceGenerator(name="user_seq", sequenceName="user_seq", allocationSize=1, schema = "instabot")
 	private Long id;
 
 	@Column(unique = true)

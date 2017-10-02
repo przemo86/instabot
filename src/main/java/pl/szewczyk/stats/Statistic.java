@@ -20,7 +20,7 @@ public class Statistic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "statistics_seq")
-    @SequenceGenerator(name = "statistics_seq", sequenceName = "statistics_seq", allocationSize = 1)
+    @SequenceGenerator(name = "statistics_seq", sequenceName = "statistics_seq", allocationSize = 1, schema = "instabot")
     private Long id;
 
     @OneToOne

@@ -95,6 +95,7 @@ class JpaConfig {
         jpaProperties.put(Environment.FORMAT_SQL, formatSql);
         jpaProperties.put(Environment.USE_SQL_COMMENTS, useSqlComments);
         jpaProperties.put(Environment.POOL_SIZE, useSqlComments);
+        jpaProperties.put(Environment.DEFAULT_SCHEMA, "instabot");
 
         entityManagerFactoryBean.setJpaProperties(jpaProperties);
 

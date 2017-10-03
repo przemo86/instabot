@@ -8,6 +8,7 @@ import javax.persistence.*;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by przem on 27.09.2017.
@@ -29,13 +30,9 @@ public class Statistic {
 
     private Instant time;
 
-    @ElementCollection
-    @CollectionTable(name = "stat_includetags", schema = "instabot")
-    private Set<String> includeHashtags = new HashSet<>();
+    private String includeHashtags;
 
-    @ElementCollection
-    @CollectionTable(name = "stat_excludetags", schema = "instabot")
-    private Set<String> excludeHashtags = new HashSet<>();
+    private String excludeHashtags;
 
     private String commentString;
 
@@ -53,8 +50,8 @@ public class Statistic {
 
         this.project = project;
         this.commentString = project.getCommentString();
-        this.includeHashtags = new HashSet<>(project.getIncludeHashtags());
-        this.excludeHashtags = new HashSet<>(project.getExcludeHashtags());
+        this.includeHashtags = project.getIncludeHashtags().stream().collect(Collectors.joining(","));
+        this.excludeHashtags = project.getExcludeHashtags().stream().collect(Collectors.joining(","));
         this.hashtagSearch = project.getHashtagSearch();
         for (MediaFeedData mediaFeed : mediaFeedData) {
             media.add(new Media(mediaFeed));
@@ -86,19 +83,19 @@ public class Statistic {
         this.time = time;
     }
 
-    public Set<String> getIncludeHashtags() {
+    public String getIncludeHashtags() {
         return includeHashtags;
     }
 
-    public void setIncludeHashtags(Set<String> includeHashtags) {
+    public void setIncludeHashtags(String includeHashtags) {
         this.includeHashtags = includeHashtags;
     }
 
-    public Set<String> getExcludeHashtags() {
+    public String getExcludeHashtags() {
         return excludeHashtags;
     }
 
-    public void setExcludeHashtags(Set<String> excludeHashtags) {
+    public void setExcludeHashtags(String excludeHashtags) {
         this.excludeHashtags = excludeHashtags;
     }
 

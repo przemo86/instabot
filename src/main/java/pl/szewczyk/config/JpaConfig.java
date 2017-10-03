@@ -46,6 +46,12 @@ class JpaConfig {
     @Value("${hibernate.use_sql_comments}")
     private String useSqlComments;
 
+    @Value("${dataSource.maxPoolSize}")
+    private Integer maxPoolSize;
+
+    @Value("${dataSource.minPoolSize}")
+    private Integer minPoolSize;
+
     @Bean
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
@@ -65,8 +71,8 @@ class JpaConfig {
             e.printStackTrace();
         }
 
-        config.setMinimumIdle(2);
-        config.setMaximumPoolSize(2);
+        config.setMinimumIdle(minPoolSize);
+        config.setMaximumPoolSize(maxPoolSize);
 
 
         config.addDataSourceProperty("cachePrepStmts", "true");

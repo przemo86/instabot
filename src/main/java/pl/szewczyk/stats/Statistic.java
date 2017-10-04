@@ -5,6 +5,7 @@ import pl.szewczyk.projects.HashtagSearchEnum;
 import pl.szewczyk.projects.Project;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "statistics", schema = "instabot", indexes = {@Index(name = "statistic_project_idx", columnList = "kind,projectid")})
-public class Statistic {
+public class Statistic implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "statistics_seq")

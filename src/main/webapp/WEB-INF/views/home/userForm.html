@@ -31,7 +31,7 @@
         Alert
     </div>
 </th:block>
-<legend th:text="#{user.header}"></legend>
+<legend th:text="#{${userForm.email == null} ? user.add : user.edit}"></legend>
 <form class="form-narrow form-horizontal" method="post" th:action="@{/user}" th:object="${userForm}"
       th:fragment="userForm">
     <div class="container">

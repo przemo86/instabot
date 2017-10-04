@@ -49,11 +49,15 @@ class CommentCorrectValidator implements ConstraintValidator<CommentCorrect, Obj
             if (projectForm.getCommentFrequency() != null)
                 if (projectForm.getCommentString() != null)
                     if (!projectForm.getCommentString().equals("")) {
+                        System.out.println("COMMENT VALID - si commento");
                         return true;
                     }
         } else {
+            System.out.println("COMMENT VALID - co nommento");
             return true;
         }
+        System.out.println("INCVALID COMMENT");
+
         return false;
     }
 

@@ -17,6 +17,7 @@ public class UserForm {
     private static final String PASSWORD_CONFIRM_WRONG = "{user.password.confirm.error}";
 
     private String email;
+
     private String password;
     private String repeatPassword;
 

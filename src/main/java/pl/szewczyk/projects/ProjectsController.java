@@ -39,13 +39,28 @@ public class ProjectsController {
     }
 
 
-
     @GetMapping("projects")
     public String listProjects(Model model) {
         model.addAttribute("projectList", projectRepository.findAll(new Sort(Sort.Direction.ASC, "name")));
 
         return "home/projects";
     }
+
+
+    @GetMapping(value = "project")
+    public String project(Model model, HttpServletRequest request) {
+        ProjectForm projectForm = new ProjectForm();
+
+
+        model.addAttribute(projectForm);
+        model.addAttribute("enumValues", HashtagSearchEnum.values());
+
+        model.addAttribute("instagramAccounts", em.createQuery("select iu from Account a join a.instaUsers iu where a.email = :email", InstaUser.class)
+                .setParameter("email", ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername()).getResultList());
+
+        return "home/project";
+    }
+
 
     @GetMapping(value = "project", params = {"id"})
     public String project(Model model, @RequestParam(value = "id") Long id, HttpServletRequest request) {
@@ -67,6 +82,9 @@ public class ProjectsController {
 
     @PostMapping(value = "project")
     public String project(@Valid @ModelAttribute ProjectForm projectForm, Errors errors, HttpServletRequest request) {
+
+        if (errors.hasErrors())
+            return "home/project";
 
         Project project = (Project) request.getSession().getAttribute("project");
         project = projectForm.toEntity(project);

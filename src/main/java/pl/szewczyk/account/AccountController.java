@@ -61,6 +61,13 @@ public class AccountController {
     private Logger logger = Logger.getLogger(Account.class.getName());
 
     @GetMapping("/user")
+    public String addUser(Model model) {
+        UserForm userForm = new UserForm();
+        model.addAttribute("userForm", userForm);
+        return "home/userForm";
+    }
+
+    @GetMapping(value = "/user", params = {"id"})
     @PreAuthorize("hasRole('ROLE_ADMIN') or @accountRepository.findOneByEmail(#principal.name).id == #id")
     public String user(Model model, @P("id") @RequestParam(value = "id") Long id,
                        @RequestParam(value = "code", required = false) String code,

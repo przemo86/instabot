@@ -71,13 +71,13 @@
                         th:text="#{navigation.signin}"></span>
                 </a>
             </li>
-            <li>
-                <a href="#" th:href="@{#}" onclick="$('#form').submit();">
-                    <span class="glyphicon glyphicon-log-in" aria-hidden="true">&nbsp;</span><span
-                        th:text="#{navigation.signout}"></span>
-                </a>
-                <form style="visibility: hidden" id="form" method="post" action="#" th:action="@{/logout}"></form>
-            </li>
+            <!--<li>-->
+                <!--<a href="#" th:href="@{#}" onclick="$('#form').submit();">-->
+                    <!--<span class="glyphicon glyphicon-log-in" aria-hidden="true">&nbsp;</span><span-->
+                        <!--th:text="#{navigation.signout}"></span>-->
+                <!--</a>-->
+
+            <!--</li>-->
         </ul>
     </nav>
     <!--/.nav-collapdiv-->
@@ -95,21 +95,25 @@
     <!--<div class="container-fluid">-->
 
             <ul class="nav navbar-nav navbar-right">
-                <li style="margin-top:18px"> <button class="btn" th:if="${module == 'projects'}">UZMIENNIĆ</button></li>
+                <li style="margin-top:18px"> <button class="btn" th:if="${module == 'projects'}" th:text="#{project.add}" onclick="location.href='/project'"></button></li>
+                <li style="margin-top:18px"> <button class="btn" th:if="${module == 'users'}" th:text="#{user.add}" onclick="location.href='/user'"></button></li>
                 <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        UZMIENNIĆ &nbsp;
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                    >
+
                         <img src="../../../resources/images/test.jpg" class="img-user img-circle" alt="IMIE"><span class="caret"></span>
                     </a>
 
                     <ul class="dropdown-menu">
-                        <li><a href="#"><span th:text="#{navigation.home}">&nbsp;&nbsp;</span></a></li>
+                        <li><a href="/" th:href="@{/}"><span th:text="#{navigation.home}">&nbsp;&nbsp;</span></a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="#"><span th:text="#{navigation.signout}">&nbsp;&nbsp;</span></a></li>
+                        <li><a href="#" th:href="@{#}" onclick="$('#form').submit();">
+                            <span th:text="#{navigation.signout}">&nbsp;&nbsp;</span></a></li>
                     </ul>
                 </li>
 
             </ul>
+                <form style="visibility: hidden" id="form" method="post" action="#" th:action="@{/logout}"></form>
 
 
     <!--</div>-->

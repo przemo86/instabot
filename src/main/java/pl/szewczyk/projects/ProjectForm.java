@@ -13,27 +13,28 @@ import java.util.stream.Collectors;
 @CommentCorrect
 public class ProjectForm implements java.io.Serializable {
 
-    @NotNull(message = "pole nie może być puste")
+    @Size(min = 1, max = 40, message = "pole nie może być puste")
     private String name;
 
-    @NotNull(message = "pole nie może być puste")
+    @Size(min = 1, max = 40, message = "pole nie może być puste")
     private String customer;
 
-    @NotNull(message = "Nie wybrano konta instagram")
+    @Size(min = 1, max = 25, message = "Nie wybrano konta instagram")
     private String instagramAccount;
 
     private boolean status = false;
 
-    @NotNull
-    @Size(min = 5, message = "Podaj hashtagi występujące")
+    @Size(min = 1, message = "Podaj hashtagi występujące")
     private String includeHashtags;
 
     private String excludeHashtags;
 
     private String commentString;
 
+    @NotNull(message = "Wybierz częstotliwość lajków")
     private FrequencyEnum likeFrequency;
 
+    @NotNull(message = "Wybierz częstotliwość komentarzy")
     private FrequencyEnum commentFrequency;
 
     @NotNull(message = "Wybierz rodzaj poszukiwania hashtagów")

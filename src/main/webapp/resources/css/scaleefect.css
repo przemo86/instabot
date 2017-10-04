@@ -306,3 +306,11 @@ kill-button{
     border-radius: 4px;
     padding: 5px 5px;
 }
+
+.comment-column{
+    background-color: #eef;
+}
+
+.like-column{
+    background-color: #efe;
+}

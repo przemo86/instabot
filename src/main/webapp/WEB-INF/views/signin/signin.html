@@ -21,35 +21,49 @@
     <div class="login-fieldset">
 
         <fieldset>
-            <div class="login-form">
-                <div class="signin-title">
-                    <i class="fa fa-circle signin-logo"></i>
-                    <span th:text="#{application.title}">&nbsp;&nbsp;</span></div>
-                <div class="form-group col-lg-12 inner-addon left-addon">
-                    <label for="inputEmail" class="control-label">Email</label>
+            <div class="login-form container" style="margin:0px;">
 
-                    <i class="glyphicon glyphicon-user "></i>
-                    <input type="text" class="form-control input-control" id="inputEmail" placeholder="Email"
-                           name="username"/>
-                </div>
-                <div class="form-group col-lg-12 inner-addon left-addon">
-                    <label for="inputPassword" class="control-label" th:text="#{signin.password}"/>
-                    <i class="glyphicon glyphicon-lock "></i>
-                    <input type="password" class="form-control input-control" id="inputPassword" placeholder="Password"
-                           name="password"/>
-                </div>
-                <div class="form-group col-lg-12">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="_spring_security_remember_me"
-                                   th:text="#{signin.rememberme}"/>
-                        </label>
+                    <div class="row">
+                        <div class="signin-title">
+                            <i class="fa fa-circle signin-logo"></i>
+                            <span th:text="#{application.title}">&nbsp;&nbsp;</span>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group col-lg-12">
+                    <div class="row">
+                        <div class="form-group col-lg-12 inner-addon left-addon">
+                            <label for="inputEmail" class="control-label">Email</label>
 
-                    <button type="submit" class="btn btn-block signin-button" th:text="#{signin.signin}">Sign in</button>
-                </div>
+                            <i class="glyphicon glyphicon-user "></i>
+                            <input type="text" class="form-control input-control" id="inputEmail" placeholder="Email"
+                                   name="username"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-12 inner-addon left-addon">
+                            <label for="inputPassword" class="control-label" th:text="#{signin.password}"/>
+                            <i class="glyphicon glyphicon-lock "></i>
+                            <input type="password" class="form-control input-control" id="inputPassword"
+                                   placeholder="Password"
+                                   name="password"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-12">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="_spring_security_remember_me"
+                                           th:text="#{signin.rememberme}"/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-lg-12">
+
+                            <button type="submit" class="btn btn-block signin-button" th:text="#{signin.signin}">Sign in
+                            </button>
+                        </div>
+                    </div>
 
             </div>
             <!--<div class="form-group">-->

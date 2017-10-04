@@ -3,16 +3,22 @@
 <head th:replace="fragments/layout :: head">
     <title th:text="#{view.about.title}">Welcome!</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link href="../../../resources/css/core.css" rel="stylesheet" media="screen" th:href="@{/resources/css/core.css}" />
+    <link href="../../../resources/css/core.css" rel="stylesheet" media="screen" th:href="@{/resources/css/core.css}"/>
     <script src="../../../resources/js/jquery.min.js" th:src="@{/resources/js/jquery.min.js}"></script>
 </head>
 <body>
-<div th:replace="fragments/layout :: header"></div>
-<div class="container">
-    <p class="lead text-center">
-        settings
-    </p>
+<div class="wrapper">
+    <div th:replace="fragments/layout :: header"></div>
+    <div class="page-content-wrapper">
+        <div th:replace="fragments/layout :: upperBar"></div>
+        <div class="container-fluid">
+            <p class="lead text-center">
+                settings
+            </p>
+        </div>
+        <div th:replace="fragments/layout :: footer"></div>
+    </div>
+
 </div>
-<div th:replace="fragments/layout :: footer"></div>
 </body>
 </html>

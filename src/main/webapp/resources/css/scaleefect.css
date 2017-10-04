@@ -1,68 +1,87 @@
+@font-face {
+    font-family: lato;
+    src: url(../fonts/Lato-Regular.ttf);
+}
+
+@font-face {
+    font-family: lato;
+    src: url(../fonts/Lato-Bold.ttf);
+    font-weight: bold;
+}
+
+.body {
+
+}
+
+.wrapper {
+    display: flex;
+    width: auto;
+    font-family: lato;
+}
+
+#sidebar {
+    min-width: 220px;
+    max-width: 220px;
+    min-height: 100vh;
+}
+
+.page-content-wrapper {
+    width: 100%;
+    position: relative;
+    padding: 0;
+}
+
 .navbar-default {
+    background-color: #fff;
+    border: none;
+}
+
+.navbar {
+    margin-bottom: 0;
+}
+
+.sidebar-wrapper {
     background-color: #242836;
-    border-color: #1c202b;
 }
 
-.navbar-default .navbar-brand {
-    color: #7a8097;
+#sidebar li:hover,
+#sidebar li:focus {
+    background-color: #343847;
+    text-decoration: none;
 }
 
-.navbar-default .navbar-brand:hover,
-.navbar-default .navbar-brand:focus {
-    color: #d4d4d7;
+#sidebar li {
+    line-height: 40px;
+    font-size: 14px;
+    padding-left: 15px;
 }
 
-.navbar-default .navbar-text {
-    color: #7a8097;
-}
-
-.navbar-default .navbar-nav > li > a {
-    color: #7a8097;
-}
-
-.navbar-default .navbar-nav > li > a:hover,
-.navbar-default .navbar-nav > li > a:focus {
-    color: #d4d4d7;
-}
-
-.navbar-default .navbar-nav > .active > a,
-.navbar-default .navbar-nav > .active > a:hover,
-.navbar-default .navbar-nav > .active > a:focus {
-    color: #d4d4d7;
+#sidebar li.active {
     background-color: #1c202b;
+    box-sizing: border-box;
+    border-left: solid 4px;
+    border-color: #7655D4;
 }
 
-.navbar-default .navbar-nav > .open > a,
-.navbar-default .navbar-nav > .open > a:hover,
-.navbar-default .navbar-nav > .open > a:focus {
-    color: #d4d4d7;
-    background-color: #1c202b;
+#sidebar a {
+    text-decoration: none;
+    color: #6a7085;
+    font-family: lato;
+    font-weight: bold;
+
 }
 
-.navbar-default .navbar-toggle {
-    border-color: #1c202b;
+#sidebar li.active > a {
+    color: white;
+
 }
 
-.navbar-default .navbar-toggle:hover,
-.navbar-default .navbar-toggle:focus {
-    background-color: #1c202b;
+#sidebar li.active > a > .fa {
+    color: #7655D4;
 }
 
-.navbar-default .navbar-toggle .icon-bar {
-    background-color: #7a8097;
-}
-
-.navbar-default .navbar-collapse,
-.navbar-default .navbar-form {
-    border-color: #7a8097;
-}
-
-.navbar-default .navbar-link {
-    color: #7a8097;
-}
-
-.navbar-default .navbar-link:hover {
-    color: #d4d4d7;
+.dropdown-toggle {
+    border-bottom-left-radius: 15px;
 }
 
 @media (max-width: 767px) {
@@ -81,6 +100,15 @@
         color: #d4d4d7;
         background-color: #1c202b;
     }
+
+    .dropdown-toggle {
+        border-bottom-left-radius: 0px;
+    }
+
+    .project-button {
+        display: none;
+        height: 0px;
+    }
 }
 
 .navbar .fa {
@@ -88,7 +116,7 @@
     font-size: x-small;
 }
 
-.login-fieldset{
+.login-fieldset {
     box-shadow: 0px 0px 12px 8px rgba(0, 0, 0, 0.05), 0 4px 4px 0 rgba(0, 0, 0, 0.01);
     margin: 150px auto;
     width: 420px;
@@ -101,8 +129,8 @@
 
 }
 
-.signin-button{
-    background-color: #9A75FF;
+.signin-button {
+    background-color: #7655D4;
     color: #FFF;
     font-weight: bolder;
 }
@@ -135,14 +163,15 @@ fieldset {
     background-color: #242836;
 }
 
-.layout-application-name{
+.layout-application-name {
     font-size: 18px;
-    line-height: 60px;
+    line-height: 70px;
     width: 100%;
     text-align: center;
-    margin-left: -25px;
+
     /*padding: 5px 0;*/
     color: #AAA;
+    background-color: #1c202b;
 }
 
 .nav .navbar-inverse .active {
@@ -152,6 +181,12 @@ fieldset {
 /* enable absolute positioning */
 .inner-addon {
     position: relative;
+
+}
+
+.form-horizontal .form-group {
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 /* style icon */
@@ -163,15 +198,20 @@ fieldset {
 }
 
 /* align icon */
-.left-addon .glyphicon  { left:  0px;color: #AAA;}
+.left-addon .glyphicon {
+    left: 0;
+    color: #AAA;
+}
 
 /* add padding  */
-.left-addon input  { padding-left:  30px;
+.left-addon input {
+    padding-left: 30px;
 
 }
 
 .input-control:focus {
-    border-color: #B89EFF; !important;
+    border-color: #B89EFF;
+!important;
     outline: 0;
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6)
@@ -183,10 +223,86 @@ fieldset {
     background-color: #1c202b;
     top: 10px;
 }
+
 .space-top {
     padding-top: 50px;
 }
 
 .bootstrap-switch-scaleefect {
     background: #7655D4;
+}
+
+.img-user {
+    max-width: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-height: 40px;
+}
+
+.project_button {
+    margin-top: 20px;
+
+}
+
+li.dropdown.open {
+    background-color: #fff;
+}
+
+.gradient-background {
+    background: #e4e6ec; /* For browsers that do not support gradients */
+    background: -webkit-linear-gradient(#1c202b, #e4e6ec 1.25%, #f7f9ff, #f7f9ff 5%, #fff, #fff 6%); /* Safari 5.1-6.0 */
+    background: -o-linear-gradient(#1c202b, #e4e6ec 1.25%, #f7f9ff, #f7f9ff 5%, #fff, #fff 6%); /* For Opera 11.6-12.0 */
+    background: -moz-linear-gradient(#1c202b, #e4e6ec 1.25%, #f7f9ff, #f7f9ff 5%, #fff, #fff 6%); /* For Firefox 3.6-15 */
+    background: linear-gradient(#1c202b, #e4e6ec 1.25%, #f7f9ff, #f7f9ff 5%, #fff, #fff 6%); /* Standard syntax */
+}
+
+.site-title {
+    margin-top: 20px;
+    margin-left: 20px;
+    font-weight: bold;
+}
+
+.projects-table {
+    background-color: #fff;
+!important
+}
+
+.table > tbody > tr.active > td,
+.table > tbody > tr.active > th,
+.table > tbody > tr > td.active,
+.table > tbody > tr > th.active,
+.table > tfoot > tr.active > td,
+.table > tfoot > tr.active > th,
+.table > tfoot > tr > td.active,
+.table > tfoot > tr > th.active,
+.table > thead > tr.active > td,
+.table > thead > tr.active > th,
+.table > thead > tr > td.active,
+.table > thead > tr > th.active {
+    background-color: #fff;
+    padding-top: 11px;
+    padding-botttom: 13px;
+}
+
+table.table.projects-table > tbody > tr.active > td > a {
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+    border: solid 1px #dddddd;
+    border-radius: 4px;
+    padding: 5px 5px;
+}
+
+table.table.projects-table > tbody > tr.active > td > a:hover {
+    background-color: #c9c9c9;
+    text-decoration: underline;
+}
+
+kill-button{
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+    border: solid 1px #dddddd;
+    border-radius: 4px;
+    padding: 5px 5px;
 }

@@ -30,144 +30,160 @@
 
 </head>
 <body>
-<div th:replace="fragments/layout :: header"></div>
-<div class="container">
-    <div class="row" style="background: #EEE">
-        <form class="form-narrow form-horizontal" method="post" th:action="@{/project}" th:object="${projectForm}"
-              th:fragment="projectForm">
-            <div class="col-lg-6">
-                <p class="lead text-center">
-                    <span th:text="#{project.information}"></span>
-                </p>
+<div class="wrapper">
+    <div th:replace="fragments/layout :: header"></div>
+    <div class="page-content-wrapper">
+        <div th:replace="fragments/layout :: upperBar"></div>
+        <div class="container-fluid gradient-background project-form">
+            <p class="lead text-left site-title">
+                <span th:text="#{uzupelnic.na.edycja.projektu}"></span>
+            </p>
+            <form class="form-narrow form-horizontal project-form" method="post" th:action="@{/project}"
+                  th:object="${projectForm}"
+                  th:fragment="projectForm">
+            <div class="row" style="background: #eee">
 
-                <div class="form-group">
-                    <label for="projectActive" class="col-lg-4 control-label"
-                           th:text="#{project.active}"></label>
-                    <div class="col-sm-8">
-                        <input type="checkbox" class="form-control scaleefect" id="projectActive" th:field="*{status}"/>
-                        <span class="help-block" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"
-                              th:text="#{project.error.status}"></span>
+                    <div class="col-lg-6">
+                        <p class="lead text-center">
+                            <span th:text="#{project.information}"></span>
+                        </p>
+
+                        <div class="form-group">
+                            <label for="projectActive" class="col-lg-4 control-label"
+                                   th:text="#{project.active}"></label>
+                            <div class="col-sm-8">
+                                <input type="checkbox" class="form-control scaleefect" id="projectActive"
+                                       th:field="*{status}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"
+                                      th:text="#{project.error.status}"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="projectName" class="col-lg-4 control-label"
+                                   th:text="#{view.projects.name}"></label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="projectName" th:field="*{name}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
+                                      th:text="#{project.error.name}"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customer" class="col-lg-4 control-label"
+                                   th:text="#{project.customer}"></label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="customer" th:field="*{customer}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('customer')}"
+                                      th:errors="*{customer}" th:text="#{project.error.customer}"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="include-hashtag" class="col-lg-4 control-label"
+                                   th:text="#{project.hashtag.include}"></label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="include-hashtag"
+                                       th:field="*{includeHashtags}"
+                                       onkeypress="return event.keyCode != 13;"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="exclude-hashtag" class="col-lg-4 control-label"
+                                   th:text="#{project.hashtag.exclude}"></label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="exclude-hashtag"
+                                       th:field="*{excludeHashtags}"
+                                       onkeypress="return event.keyCode != 13;"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="istagram-account" class="col-lg-4 control-label"
+                                   th:text="#{project.instagram.account}"></label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="istagram-account" th:field="*{instagramAccount}">
+                                    <option th:text="#{project.instagram.account.choose}" value=""></option>
+                                    <option th:each="insta : ${instagramAccounts}"
+                                            th:text="'@' + ${insta.instaUserName}"
+                                            th:value="${insta.instaUserName}"/>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    <div class="col-lg-6">
+                        <p class="lead text-center">
+                            <span th:text="#{project.activity}"></span>
+                        </p>
 
-                <div class="form-group">
-                    <label for="projectName" class="col-lg-4 control-label"
-                           th:text="#{view.projects.name}"></label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control" id="projectName" th:field="*{name}"/>
-                        <span class="help-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
-                              th:text="#{project.error.name}"></span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="customer" class="col-lg-4 control-label"
-                           th:text="#{project.customer}"></label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control" id="customer" th:field="*{customer}"/>
-                        <span class="help-block" th:if="${#fields.hasErrors('customer')}"
-                              th:errors="*{customer}" th:text="#{project.error.customer}"></span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="include-hashtag" class="col-lg-4 control-label"
-                           th:text="#{project.hashtag.include}"></label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control" id="include-hashtag" th:field="*{includeHashtags}"
-                               onkeypress="return event.keyCode != 13;"/>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="exclude-hashtag" class="col-lg-4 control-label"
-                           th:text="#{project.hashtag.exclude}"></label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control" id="exclude-hashtag" th:field="*{excludeHashtags}"
-                               onkeypress="return event.keyCode != 13;"/>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="istagram-account" class="col-lg-4 control-label"
-                           th:text="#{project.instagram.account}"></label>
-                    <div class="col-sm-8">
-                        <select class="form-control" id="istagram-account" th:field="*{instagramAccount}">
-                            <option th:text="#{project.instagram.account.choose}" value=""></option>
-                            <option th:each="insta : ${instagramAccounts}" th:text="'@' + ${insta.instaUserName}"
-                                    th:value="${insta.instaUserName}"/>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <p class="lead text-center">
-                    <span th:text="#{project.activity}"></span>
-                </p>
-
-                <div class="form-group">
-                    <label for="comment" class="col-lg-4 control-label"
-                           th:text="#{project.comment}"></label>
-                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <label for="comment" class="col-lg-4 control-label"
+                                   th:text="#{project.comment}"></label>
+                            <div class="col-sm-8">
                         <textarea class="form-control" id="comment" th:placeholder="#{project.comment.placeholder}"
                                   th:field="*{commentString}">
 
                         </textarea>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="like-frequency" class="col-lg-2 control-label"
-                           th:text="#{project.frequency.like}"></label>
-                    <div class="col-sm-4">
-                        <select class="form-control" id="like-frequency" th:field="*{likeFrequency}">
-                            <option th:text="#{project.instagram.account.choose}" value=""></option>
-                            <option th:each="freq : ${T(pl.szewczyk.projects.FrequencyEnum).values()}"
-                                    th:text="${freq.frequency} + ' / godz'" th:value="${freq}"></option>
-                        </select>
-                    </div>
-
-
-                    <label for="comment-frequency" class="col-lg-2 control-label"
-                           th:text="#{project.frequency.comment}"></label>
-                    <div class="col-sm-4">
-                        <select class="form-control" id="comment-frequency" th:field="*{commentFrequency}">
-                            <option th:text="#{project.instagram.account.choose}" value=""></option>
-                            <option th:each="freq : ${T(pl.szewczyk.projects.FrequencyEnum).values()}"
-                                    th:text="${freq.frequency} + ' / godz'" th:value="${freq}"></option>
-
-                        </select>
-                    </div>
-                </div>
-
-
-                <p class="lead text-center">
-                    <span th:text="#{project.settings}"></span>
-                </p>
-                <div class="form-group">
-                    <label class="col-lg-2 control-label"
-                           th:text="#{project.hashtag.search}"></label>
-                    <div class="col-lg-6-4">
-                        <div class="col-lg-3">
-                            <input type="radio" th:field="*{hashtagSearch}" th:each="val : ${enumValues}"
-                                   th:value="${val}" th:text="#{${val}}"/>
-                        </div>
-                    </div>
-
-
-                    <label class="col-lg-2 control-label"
-                           th:text="#{project.activity}"></label>
-                    <div class="col-sm-4">
-                        <div class="col-lg-6-4">
-                            <div class="col-lg-3">
-                                <input type="checkbox" th:text="#{project.activity.like}" th:field="*{like}"/>
-                            </div>
-                            <div class="col-lg-3">
-                                <input type="checkbox" th:text="#{project.activity.comment}" th:field="*{comment}"/>
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="like-frequency" class="col-lg-2 control-label"
+                                   th:text="#{project.frequency.like}"></label>
+                            <div class="col-sm-4">
+                                <select class="form-control" id="like-frequency" th:field="*{likeFrequency}">
+                                    <option th:text="#{project.instagram.account.choose}" value=""></option>
+                                    <option th:each="freq : ${T(pl.szewczyk.projects.FrequencyEnum).values()}"
+                                            th:text="${freq.frequency} + ' / godz'" th:value="${freq}"></option>
+                                </select>
+                            </div>
+
+
+                            <label for="comment-frequency" class="col-lg-2 control-label"
+                                   th:text="#{project.frequency.comment}"></label>
+                            <div class="col-sm-4">
+                                <select class="form-control" id="comment-frequency" th:field="*{commentFrequency}">
+                                    <option th:text="#{project.instagram.account.choose}" value=""></option>
+                                    <option th:each="freq : ${T(pl.szewczyk.projects.FrequencyEnum).values()}"
+                                            th:text="${freq.frequency} + ' / godz'" th:value="${freq}"></option>
+
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <p class="lead text-center">
+                            <span th:text="#{project.settings}"></span>
+                        </p>
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label"
+                                   th:text="#{project.hashtag.search}"></label>
+                            <div class="col-lg-6-4">
+                                <div class="col-lg-3">
+                                    <input type="radio" th:field="*{hashtagSearch}" th:each="val : ${enumValues}"
+                                           th:value="${val}" th:text="#{${val}}"/>
+                                </div>
+                            </div>
+
+
+                            <label class="col-lg-2 control-label"
+                                   th:text="#{project.activity}"></label>
+                            <div class="col-sm-4">
+                                <div class="col-lg-6-4">
+                                    <div class="col-lg-3">
+                                        <input type="checkbox" th:text="#{project.activity.like}" th:field="*{like}"/>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <input type="checkbox" th:text="#{project.activity.comment}"
+                                               th:field="*{comment}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
                     </div>
-                </div>
 
 
             </div>
@@ -175,15 +191,16 @@
                 <input type="submit" th:value="#{project.save}" class="btn btn-default">
                 <a th:href="@{/projects}" th:text="#{navigation.back}" class="btn btn-default"></a>
             </div>
-        </form>
+            </form>
+        </div>
+        <div th:replace="fragments/layout :: footer"></div>
     </div>
 </div>
-
 <script type="text/javascript">
     $('#include-hashtag').tokenfield({beautify: true});
     $('#exclude-hashtag').tokenfield();
     $('#projectActive').bootstrapSwitch({'onColor': 'scaleefect', 'inverse': true});
 </script>
-<div th:replace="fragments/layout :: footer"></div>
+
 </body>
 </html>

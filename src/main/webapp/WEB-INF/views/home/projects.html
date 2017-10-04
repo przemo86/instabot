@@ -3,43 +3,55 @@
 <head th:replace="fragments/layout :: head">
     <title th:text="#{view.about.title}">Welcome!</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="../../../resources/css/scaleefect.css" rel="stylesheet" media="screen"
+          th:href="@{/resources/css/scaleefect.css}"/>
+
 </head>
 <body>
-<div th:replace="fragments/layout :: header"></div>
+<div class="wrapper">
+    <div th:replace="fragments/layout :: header"></div>
 
-<div class="container">
-    <div class="row" style="background: #EEE">
-        <p class="lead text-left">
-            <span th:text="#{view.projects.title}"></span>
-        </p>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th th:text="#{projects.table.name}"></th>
-                <th th:text="#{projects.table.created}"></th>
-                <th th:text="#{projects.table.customer}"></th>
-                <th th:text="#{projects.table.status}"></th>
-                <th th:text="#{projects.table.people}"></th>
-                <th th:text="#{projects.table.actions}"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="project : ${projectList}" th:class="${#authentication.name.equals(project.owner?.email) ? (project.status ? 'success' : 'warning') : 'active'}">
-                <td th:text="${project.name}"></td>
-                <td th:text="${#dates.format(project.created, #messages.msg('app.dateformat'))}"></td>
-                <td th:text="${project.customer}"></td>
-                <td th:text="#{${project.status} ? projects.table.active : projects.table.inactive}"></td>
-                <td th:text="${project.owner.email}">-</td>
-                <td>
-                    <a th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')') or #authentication.name.equals(project.owner?.email)}" th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit" th:value="${project.id}" th:text="#{projects.table.edit}"></a>
-                </td>
-            </tr>
+    <div class="page-content-wrapper">
+        <div th:replace="fragments/layout :: upperBar"></div>
+        <div class="container-fluid gradient-background">
 
-            </tbody>
-        </table>
+            <p class="lead text-left site-title">
+                <span th:text="#{view.projects.title}"></span>
+            </p>
+            <table class="table projects-table">
+                <thead>
+                <tr>
+                    <th th:text="#{projects.table.name}"></th>
+                    <th th:text="#{projects.table.created}"></th>
+                    <th th:text="#{projects.table.customer}"></th>
+                    <th th:text="#{projects.table.status}"></th>
+                    <th th:text="#{projects.table.people}"></th>
+                    <th th:text="#{projects.table.actions}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="project : ${projectList}"
+                    th:class="${#authentication.name.equals(project.owner?.email) ? (project.status ? 'success' : 'warning') : 'active'}">
+                    <td th:text="${project.name}"></td>
+                    <td th:text="${#dates.format(project.created, #messages.msg('app.dateformat'))}"></td>
+                    <td th:text="${project.customer}"></td>
+                    <td th:text="#{${project.status} ? projects.table.active : projects.table.inactive}"></td>
+                    <td th:text="${project.owner.email}">-</td>
+                    <td>
+                        <a th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')') or #authentication.name.equals(project.owner?.email)}"
+                           th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit"
+                           th:value="${project.id}" th:text="#{projects.table.edit}"></a>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+
+        <div th:replace="fragments/layout :: footer"></div>
     </div>
-
 </div>
-<div th:replace="fragments/layout :: footer"></div>
+
 </body>
 </html>

@@ -29,7 +29,7 @@
     <nav id="sidebar">
         <div class="layout-application-name">
             <i class="fa fa-circle signin-logo"></i>
-            <span th:text="#{application.title}">&nbsp;&nbsp;</span></div>
+            <span class="logo-text" th:text="#{application.title}">&nbsp;&nbsp;</span></div>
 
         <ul class="list-unstyled">
 
@@ -62,15 +62,15 @@
                     <span class="fa fa-sliders" aria-hidden="true">&nbsp;&nbsp;</span><span
                         th:text="#{navigation.settings}"></span>
                 </a>
-            </li>
+            </li>z
 
 
-            <li>
-                <a href="/signin" th:href="@{/signin}" th:if="${#authorization.expression('!isAuthenticated()')}">
-                    <span class="glyphicon glyphicon-log-in" aria-hidden="true">&nbsp;</span><span
-                        th:text="#{navigation.signin}"></span>
-                </a>
-            </li>
+            <!--<li>-->
+                <!--<a href="/signin" th:href="@{/signin}" th:if="${#authorization.expression('!isAuthenticated()')}">-->
+                    <!--<span class="glyphicon glyphicon-log-in" aria-hidden="true">&nbsp;</span><span-->
+                        <!--th:text="#{navigation.signin}"></span>-->
+                <!--</a>-->
+            <!--</li>-->
             <!--<li>-->
                 <!--<a href="#" th:href="@{#}" onclick="$('#form').submit();">-->
                     <!--<span class="glyphicon glyphicon-log-in" aria-hidden="true">&nbsp;</span><span-->

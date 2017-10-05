@@ -39,6 +39,7 @@
                     <td th:text="${project.owner.email}">-</td>
                     <td>
                         <a th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')') or #authentication.name.equals(project.owner?.email)}"
+                           class="btn btn-default btn-xs"
                            th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit"
                            th:value="${project.id}" th:text="#{projects.table.edit}"></a>
                     </td>

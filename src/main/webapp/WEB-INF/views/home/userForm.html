@@ -23,136 +23,153 @@
 </head>
 <body>
 <script src="../../../resources/js/bootstrap.min.js" th:src="@{/resources/js/bootstrap.min.js}"></script>
-<div th:replace="fragments/layout :: header"></div>
-
-<!--/* Show general error message when form contains errors */-->
-<th:block th:if="${#fields.hasErrors('${userForm.*}')}">
-    <div th:replace="fragments/components :: alert (type='danger', message='Form contains errors. Please try again.')">
-        Alert
-    </div>
-</th:block>
-<legend th:text="#{${userForm.email == null} ? user.add : user.edit}"></legend>
-<form class="form-narrow form-horizontal" method="post" th:action="@{/user}" th:object="${userForm}"
-      th:fragment="userForm">
-    <div class="container">
-        <div class="row">
-            <!--email-->
-            <div class="col-lg-5">
-                <div class="row" th:classappend="${#fields.hasErrors('email')}? 'has-error'">
-                    <label for="email" class="control-label">Email</label>
-                    <input type="text" class="form-control input-control" id="email" placeholder="Email"
-                           th:field="*{email}"/>
-                    <span class="help-block" th:if="${#fields.hasErrors('email')}"
-                          th:errors="*{email}">Incorrect email</span>
-                </div>
-                <!--password-->
-                <div class="row" th:classappend="${#fields.hasErrors('password')}? 'has-error'">
-                    <label for="password" class="control-label" th:text="#{user.password}"></label>
-
-                    <input type="password" class=" form-control input-control" id="password"
-                           th:placeholder="#{user.password}"
-                           th:field="*{password}"/>
-                    <span class="help-block" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Incorrect password</span>
-
-                </div>
-                <!--repeat-->
-                <div class="row" th:classappend="${#fields.hasErrors('repeatPassword')}? 'has-error'">
-                    <label for="repeatPassword" class="control-label" th:text="#{user.repeatPassword}"></label>
-
-                    <input type="password" class=" form-control input-control" id="repeatPassword"
-                           th:placeholder="#{user.repeatPassword}"
-                           th:field="*{repeatPassword}"/>
-                    <span class="help-block" th:if="${#fields.hasErrors('repeatPassword')}"
-                          th:errors="*{repeatPassword}">Incorrect password</span>
-
-                </div>
-                <!--expires-->
-                <div class="row" th:classappend="${#fields.hasErrors('repeatPassword')}? 'has-error'">
-                    <label for="expires" class="control-label" th:text="#{user.expires}"></label>
-                    <input type="date" class="form-control input-control" id="expires"
-                           th:placeholder="#{user.expires}"
-                           th:field="*{expires}"/>
-                    <span class="help-block" th:if="${#fields.hasErrors('expires')}" th:errors="*{expires}">Incorrect password</span>
-
-                </div>
-                <!--locked-->
-                <div class="row" th:classappend="${#fields.hasErrors('locked')}? 'has-error'">
-                    <label for="locked" class="control-label" th:text="#{user.locked}"></label>
-                    <input type="checkbox" class="media-middle input-control" id="locked"
-                           th:placeholder="#{user.locked}"
-                           th:field="*{locked}"/>
-                    <span class="help-block" th:if="${#fields.hasErrors('locked')}"
-                          th:errors="*{locked}">Incorrect password</span>
-                </div>
-                <div class="row" th:classappend="${#fields.hasErrors('role')}? 'has-error'">
-                    <label for="role" class="control-label" th:text="#{user.role}"></label>
-                    <select th:value="*{role}" class="media-middle form-control input-control" id="role"
-                            th:placeholder="#{user.role}"
-                            th:field="*{role}">
-                        <option th:text="#{project.instagram.account.choose}" value="" disabled></option>
-                        <option th:each="role : ${T(pl.szewczyk.account.Role).values()}"
-                                th:text="${role.role}" th:value="${role}"></option>
-                    </select>
-                    <span class="help-block" th:if="${#fields.hasErrors('role')}"
-                          th:errors="*{role}">Incorrect password</span>
-                </div>
+<div class="wrapper">
+    <div th:replace="fragments/layout :: header"></div>
+    <div class="page-content-wrapper">
+        <div th:replace="fragments/layout :: upperBar"></div>
+        <!--/* Show general error message when form contains errors */-->
+        <th:block th:if="${#fields.hasErrors('${userForm.*}')}">
+            <div th:replace="fragments/components :: alert (type='danger', message='Form contains errors. Please try again.')">
+                Alert
             </div>
+        </th:block>
 
-            <div class="col-lg-7">
-                <div class="row" th:classappend="${#fields.hasErrors('role')}? 'has-error'">
+        <form class="form-narrow form-horizontal" method="post" th:action="@{/user}" th:object="${userForm}"
+              th:fragment="userForm">
+            <div class="container-fluid gradient-background">
+                <p class="lead text-left site-title">
+                    <span th:text="#{${userForm.email == null} ? user.add : user.edit}"></span>
+                </p>
+                <div class="row">
+                    <!--email-->
+                    <div class="col-lg-5">
+                        <div class="row form-group" th:classappend="${#fields.hasErrors('email')}? 'has-error'">
+                            <label for="email" class="control-label col-lg-3">Email</label>
+                            <div class="col-lg-9">
+                                <input type="text" class="form-control input-control" id="email" placeholder="Email"
+                                       th:field="*{email}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('email')}"
+                                      th:errors="*{email}">Incorrect email</span>
+                            </div>
+                        </div>
+                        <!--password-->
+                        <div class="row form-group" th:classappend="${#fields.hasErrors('password')}? 'has-error'">
+                            <label for="password" class="control-label col-lg-3" th:text="#{user.password}"></label>
+                            <div class="col-lg-9">
+                                <input type="password" class=" form-control input-control" id="password"
+                                       th:placeholder="#{user.password}"
+                                       th:field="*{password}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('password')}"
+                                      th:errors="*{password}">Incorrect password</span>
+                            </div>
+                        </div>
+                        <!--repeat-->
+                        <div class="row form-group"
+                             th:classappend="${#fields.hasErrors('repeatPassword')}? 'has-error'">
+                            <label for="repeatPassword" class="control-label col-lg-3"
+                                   th:text="#{user.repeatPassword}"></label>
+                            <div class="col-lg-9">
+                                <input type="password" class=" form-control input-control" id="repeatPassword"
+                                       th:placeholder="#{user.repeatPassword}"
+                                       th:field="*{repeatPassword}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('repeatPassword')}"
+                                      th:errors="*{repeatPassword}">Incorrect password</span>
+                            </div>
+                        </div>
+                        <!--expires-->
+                        <div class="row form-group"
+                             th:classappend="${#fields.hasErrors('repeatPassword')}? 'has-error'">
+                            <label for="expires" class="control-label col-lg-3" th:text="#{user.expires}"></label>
+                            <div class="col-lg-9">
+                                <input type="date" class="form-control input-control" id="expires"
+                                       th:placeholder="#{user.expires}"
+                                       th:field="*{expires}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('expires')}" th:errors="*{expires}">Incorrect password</span>
+                            </div>
+                        </div>
+                        <!--locked-->
+                        <div class="row form-group" th:classappend="${#fields.hasErrors('locked')}? 'has-error'">
+                            <label for="locked" class="control-label col-lg-3" th:text="#{user.locked}"></label>
+                            <div class="col-lg-9">
+                                <input type="checkbox" class="media-middle input-control" id="locked"
+                                       th:placeholder="#{user.locked}"
+                                       th:field="*{locked}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('locked')}"
+                                      th:errors="*{locked}">Incorrect password</span>
+                            </div>
+                        </div>
+                        <div class="row form-group" th:classappend="${#fields.hasErrors('role')}? 'has-error'">
+                            <label for="role" class="control-label col-lg-3" th:text="#{user.role}"></label>
+                            <div class="col-lg-9">
+                                <select th:value="*{role}" class="media-middle form-control input-control" id="role"
+                                        th:placeholder="#{user.role}"
+                                        th:field="*{role}">
+                                    <option th:text="#{project.instagram.account.choose}" value="" disabled></option>
+                                    <option th:each="role : ${T(pl.szewczyk.account.Role).values()}"
+                                            th:text="#{${role.description}}" th:value="${role}"></option>
+                                </select>
+                                <span class="help-block" th:if="${#fields.hasErrors('role')}"
+                                      th:errors="*{role}">Incorrect password</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    <label for="role" class="col-lg-4 control-label" th:text="#{user.instagram.user}"></label>
-                    <div class=" form-group col-sm-8">
-                        <button type="submit" class="media-middle input-control btn btn-default" id="addInsta"
-                                th:text="#{user.instagram.user}" name="insta"></button>
+                    <div class="col-lg-7">
+                        <div class="row" th:classappend="${#fields.hasErrors('role')}? 'has-error'">
+
+                            <label for="role" class="col-lg-4 control-label" th:text="#{user.instagram.user}"></label>
+                            <div class=" form-group col-sm-8">
+                                <button type="submit" class="media-middle input-control btn btn-default" id="addInsta"
+                                        th:text="#{user.instagram.user}" name="insta"></button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <td th:text="#{user.instagram.profile_picture}"></td>
+                                    <td th:text="#{user.instagram.id}"></td>
+                                    <td th:text="#{user.instagram.username}"></td>
+                                    <td th:text="#{user.instagram.full_name}"></td>
+                                </tr>
+                                </thead>
+                                <tr th:each="insta : *{instaUsers}">
+
+                                    <td style="text-align: center">
+                                        <img id="picture" th:src="${insta.profilePictureURL}" class="img-circle"
+                                             style="width: 50px"
+                                             th:alt="${profilePictureURL}"/>
+                                    </td>
+
+
+                                    <td th:text="${insta.id}"/>
+
+
+                                    <td th:text="${insta.instaUserName}"/>
+
+
+                                    <td th:text="${insta.fullName}"/>
+
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="row">
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <td th:text="#{user.instagram.profile_picture}"></td>
-                            <td th:text="#{user.instagram.id}"></td>
-                            <td th:text="#{user.instagram.username}"></td>
-                            <td th:text="#{user.instagram.full_name}"></td>
-                        </tr>
-                        </thead>
-                        <tr th:each="insta : *{instaUsers}">
+            </div>
 
-                            <td style="text-align: center">
-                                <img id="picture" th:src="${insta.profilePictureURL}" class="img-circle"
-                                     style="width: 50px"
-                                     th:alt="${profilePictureURL}"/>
-                            </td>
-
-
-                            <td th:text="${insta.id}"/>
-
-
-                            <td th:text="${insta.instaUserName}"/>
-
-
-                            <td th:text="${insta.fullName}"/>
-
-                        </tr>
-                    </table>
+            <br>
+            <br>
+            <!--SAVE-->
+            <div class="row" align="center">
+                <div class="center-block">
+                    <button type="submit" class="btn btn-default" th:text="#{user.save}" name="save"></button>
                 </div>
             </div>
-        </div>
-    </div>
+        </form>
 
-    <br>
-    <br>
-    <!--SAVE-->
-    <div class="row" align="center">
-        <div class="center-block">
-            <button type="submit" class="btn btn-default" th:text="#{user.save}" name="save"></button>
-        </div>
     </div>
-    </div>
-</form>
-
-<div th:replace="fragments/layout :: footer"></div>
+    <div th:replace="fragments/layout :: footer"></div>
+</div>
 <script type="text/javascript">
     //    $('#addInsta').on('click', function () {
     //

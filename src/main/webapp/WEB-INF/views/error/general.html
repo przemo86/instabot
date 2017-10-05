@@ -7,6 +7,8 @@
           th:href="@{/resources/css/bootstrap.min.css}"/>
     <link href="../../../resources/css/core.css" rel="stylesheet" media="screen" th:href="@{/resources/css/core.css}"/>
     <script src="../../../resources/js/jquery.min.js" th:src="@{/resources/js/jquery.min.js}"></script>
+    <link href="../../../resources/css/scaleefect.css" rel="stylesheet" media="screen"
+          th:href="@{/resources/css/scaleefect.css}"/>
 </head>
 <body>
 <div class="wrapper">
@@ -14,12 +16,12 @@
     <div class="page-content-wrapper">
         <div th:replace="fragments/layout :: upperBar"></div>
         <div class="container-fluid">
-
             <div th:replace="fragments/components :: alert (type='danger', message=${errorMessage})">Error: Error</div>
-
         </div>
         <div th:replace="fragments/layout :: footer"></div>
     </div>
+
 </div>
 </body>
 </html>
+

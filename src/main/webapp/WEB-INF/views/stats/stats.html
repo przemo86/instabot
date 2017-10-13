@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/layout :: head">
+<head th:include="fragments/layout :: head">
     <title th:text="#{view.about.title}">Welcome!</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link href="../../../resources/css/core.css" rel="stylesheet" media="screen" th:href="@{/resources/css/core.css}"/>
-    <script src="../../../resources/js/jquery.min.js" th:src="@{/resources/js/jquery.min.js}"></script>
 </head>
 <body>
 <div class="wrapper">
@@ -16,6 +13,76 @@
                 Statystyki
             </p>
         </div>
+        <span th:text="${project.name}"/>
+        <canvas id="canvas" style="width: 100%; height: 500px;"></canvas>
+
+        <script th:inline="javascript">
+            var chartData = [[${chartData}]];
+            var mylabels = [[${chartLabels}]];
+            var chartLabels = [];
+            mylabels.forEach(function (lbl) {
+                chartLabels.push(new Date(lbl.split('###')[0]));
+            });
+
+
+            var ctx = $("#canvas")[0].getContext("2d");
+
+            var myLineChart = new Chart(ctx, {
+                type: "line",
+
+                data: {
+                    datasets: [
+                        {
+//                            steppedLine: 'before',
+                            label: [[${project.name}]],
+                            data: chartData,
+                            borderColor: [[${chartColor}]],
+                            fill: false
+                        }
+                    ],
+                    labels: chartLabels
+                },
+                options: {
+                    scales: {
+                        xAxes: [
+                            {
+                                type: 'time',
+                                time: {
+                                    displayFormats: {
+                                        second: 'YYYY/MMM HH:mm:ss'
+                                    }
+                                },
+                                distribution: 'series',
+                                position: "bottom",
+                                ticks: {
+                                    autoSkip: true,
+                                    maxRotation: 90,
+                                    minRotation: 90
+                                }
+                            }
+                        ],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Ilość trafień'
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+
+            $("#canvas").click(
+                function (evt) {
+                    var activePoints = myLineChart.getElementsAtEvent(evt);
+                    var statId = mylabels[activePoints[0]._index].split('###')[1];
+                    //$.ajax.
+                }
+            );
+        </script>
+
         <div th:replace="fragments/layout :: footer"></div>
     </div>
 

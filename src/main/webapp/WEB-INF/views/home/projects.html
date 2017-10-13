@@ -5,7 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link href="../../../resources/css/scaleefect.css" rel="stylesheet" media="screen"
           th:href="@{/resources/css/scaleefect.css}"/>
-
+    <link href="../../../resources/css/font-awesome.min.css" rel="stylesheet" media="screen"
+          th:href="@{/resources/css/font-awesome.min.css}"/>
 </head>
 <body>
 <div class="wrapper">
@@ -42,6 +43,9 @@
                            class="btn btn-default btn-xs"
                            th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit"
                            th:value="${project.id}" th:text="#{projects.table.edit}"></a>
+
+                        <a class="fa fa-line-chart btn btn-default btn-xs"
+                           th:href="@{/stats(id=${project.id})}" href="#" th:text="#{dashboard.project.stats}"></a>
                     </td>
                 </tr>
 

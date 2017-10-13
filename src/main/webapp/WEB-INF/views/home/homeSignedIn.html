@@ -63,6 +63,7 @@
                             <span class="fa fa-times" aria-hidden="true"></span><span th:text="#{dashboard.project.kill}"/>
                         </button>
                     </form>
+                    <a th:href="@{/stats(id=${job.projectId})}" />
                 </td>
             </tr>
         </table>

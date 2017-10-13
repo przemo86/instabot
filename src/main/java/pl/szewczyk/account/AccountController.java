@@ -100,8 +100,8 @@ public class AccountController {
 
             Map<String, String> map = new HashMap<>();
             map.put("code", code);
-            map.put("client_id", "67a5ccf8ac4045a98906e37679caa4e2");
-            map.put("client_secret", "ebd82636cefa449c88eabc1db3cb83d0");
+            map.put("client_id", InstaConstants.ClientID);
+            map.put("client_secret", InstaConstants.ClientSecret);
             map.put("grant_type", "authorization_code");
             map.put("redirect_uri", request.getRequestURL().toString() + "?id=" + account.getId());
 
@@ -118,13 +118,11 @@ public class AccountController {
                     buffer.append(URLEncoder.encode(map.get(key), "UTF-8"));
                     buffer.append("&");
                 }
-                logger.severe("5555555");
                 buffer.deleteCharAt(buffer.length() - 1);
                 conn.setDoOutput(true);
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
                 outputStreamWriter.write(buffer.toString());
                 outputStreamWriter.flush();
-                logger.severe("aaaaaaaa");
                 BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String inputLine;
                 StringBuffer response = new StringBuffer();
@@ -215,12 +213,11 @@ public class AccountController {
 
     @PostMapping(path = "user", params = "insta")
     public String insta(@ModelAttribute UserForm userForm, HttpServletRequest request) {
-
+        System.out.println("INSTA!");
         Account account = (Account) request.getSession().getAttribute("account");
-
 
         return "redirect:https://www.instagram.com/oauth/authorize/?client_id=" + InstaConstants.ClientID + "&redirect_uri=" +
                 request.getRequestURL().toString() + "?id=" + account.getId()
-                + "&response_type=code&scope=public_content+likes+comments";
+                + "&response_type=code&scope=public_content+likes+comments+relationships";
     }
 }

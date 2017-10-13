@@ -3,6 +3,8 @@ package pl.szewczyk.stats;
 import org.jinstagram.entity.users.feed.MediaFeedData;
 
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,13 +14,14 @@ import java.util.Set;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "media", schema = "instabot", indexes = {@Index(name = "mediaid", columnList = "mediaId")})
-public class Media {
+@XmlRootElement
+public class Media implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_seq")
     @SequenceGenerator(name = "media_seq", sequenceName = "media_seq", allocationSize = 1, schema = "instabot")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne()
     private Statistic statistic;
 
 
@@ -32,6 +35,8 @@ public class Media {
     @CollectionTable(name = "tags", schema = "instabot")
     private Set<String> tags = new HashSet<>();
 
+    public Media() {
+    }
 
     public Media(MediaFeedData mediaFeedData) {
         this.link = mediaFeedData.getLink();

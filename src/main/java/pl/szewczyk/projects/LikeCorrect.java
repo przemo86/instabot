@@ -10,7 +10,6 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.logging.Logger;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -30,20 +29,18 @@ public @interface LikeCorrect {
 @Component
 class LikeCorrectValidator implements ConstraintValidator<LikeCorrect, Object> {
 
-    Logger logger = Logger.getLogger(LikeCorrectValidator.class.getName());
-
     public LikeCorrectValidator() {
 
     }
 
     @Override
     public void initialize(LikeCorrect passwordCorrect) {
-        logger.severe("initialize");
+
     }
 
     @Override
     public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
-        logger.severe("valid?");
+        System.out.println("valid?");
         ProjectForm projectForm = (ProjectForm) o;
         if (projectForm.isLike()) {
             if (projectForm.getLikeFrequency() != null) {
@@ -52,7 +49,7 @@ class LikeCorrectValidator implements ConstraintValidator<LikeCorrect, Object> {
         } else {
             return true;
         }
-        logger.severe("INVALID");
+        System.out.println("INVALID");
         return false;
     }
 

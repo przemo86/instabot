@@ -25,8 +25,9 @@ public class Statistic implements Serializable {
     @SequenceGenerator(name = "statistics_seq", sequenceName = "statistics_seq", allocationSize = 1, schema = "instabot")
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "projectid")
+    @com.google.gson.annotations.Expose
     private Project project;
 
     private Instant time;
@@ -44,6 +45,9 @@ public class Statistic implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Media.class, orphanRemoval = true, cascade = CascadeType.ALL)
     private Set<Media> media = new HashSet<>();
+
+    public Statistic() {
+    }
 
     public Statistic(Project project, Set<MediaFeedData> mediaFeedData) {
 

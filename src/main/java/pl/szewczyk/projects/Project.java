@@ -28,7 +28,7 @@ public class Project implements java.io.Serializable {
 
     private boolean status = false;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id")
     private Account owner;
 

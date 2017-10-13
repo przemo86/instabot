@@ -17,6 +17,8 @@ class ExceptionHandler {
 	public ModelAndView exception(Exception exception, WebRequest request) {
 		ModelAndView modelAndView = new ModelAndView("error/general");
 		modelAndView.addObject("errorMessage", exception.getMessage());
+		System.out.println(exception.getMessage());
+		exception.printStackTrace();
 		return modelAndView;
 	}
 }

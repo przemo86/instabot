@@ -16,6 +16,10 @@
         <span th:text="${project.name}"/>
         <canvas id="canvas" style="width: 100%; height: 500px;"></canvas>
 
+        <div id="details">
+
+        </div>
+
         <script th:inline="javascript">
             var chartData = [[${chartData}]];
             var mylabels = [[${chartLabels}]];
@@ -78,7 +82,34 @@
                 function (evt) {
                     var activePoints = myLineChart.getElementsAtEvent(evt);
                     var statId = mylabels[activePoints[0]._index].split('###')[1];
-                    //$.ajax.
+                    $.ajax({
+                        url: "/stats/project?id=" + statId,
+                        cache: false
+                    }).done(function (html) {
+
+                        var tab = '<table class="table project-table">' +
+                            '                            <thead>' +
+                            '                            <tr>' +
+                            '                            <th>Media</th>' +
+                            '                            <th>Link</th>' +
+                            '                            <th>Tags</th>' +
+                            '                            </tr>' +
+                            '                            </thead>';
+                        for (var row=0; row < html.length; row++) {
+
+                            tab += '<tr>';
+                            tab += '<td><img style="width: 50px" src="' + html[row].thumbnailUri + '" alt="' + html[row].thumbnailUri + '"/></td>';
+                            tab += '<td><a href="' + html[row].link + '" target="_blank">' + html[row].link + '</a></td>';
+                            tab += '<td>' + html[row].tags + '</td>';
+
+                            tab += '</tr>';
+                        }
+
+                        tab += '</table>';
+
+                        $("#details").empty();
+                        $("#details").append(tab);
+                    });
                 }
             );
         </script>

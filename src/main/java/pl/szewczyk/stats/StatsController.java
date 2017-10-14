@@ -4,7 +4,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 import pl.szewczyk.projects.Project;
 import pl.szewczyk.projects.ProjectRepository;
 
@@ -54,10 +56,5 @@ public class StatsController {
         return "stats/stats";
     }
 
-    //@GetMapping("stats/project")
-    @RequestMapping(path="stats/project", method = RequestMethod.GET)
-    public @ResponseBody List<Media> getStatsMedia(@RequestParam(name = "id") Long id) {
-//        return em.createQuery("from Media m join m.statistic s where s.id = :statId order by m.id", Media.class).getResultList();
-        return em.createNativeQuery("select * from instabot.media where random() < 0.25", Media.class).getResultList();
-    }
+
 }

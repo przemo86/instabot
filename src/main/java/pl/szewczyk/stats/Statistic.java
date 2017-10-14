@@ -27,7 +27,6 @@ public class Statistic implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "projectid")
-    @com.google.gson.annotations.Expose
     private Project project;
 
     private Instant time;

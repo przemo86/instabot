@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <link href="../../../resources/css/bootstrap.min.css" rel="stylesheet" media="screen" th:href="@{/resources/css/bootstrap.min.css}"/>
+    <link href="../../../resources/css/bootstrap.min.css" rel="stylesheet" media="screen"
+          th:href="@{/resources/css/bootstrap.min.css}"/>
 </head>
 <body>
 <!-- Reusable alert -->
-<div th:fragment="alert (type, message)" class="alert alert-dismissable" th:classappend="'alert-' + ${type}">
+<div th:fragment="alert (type, message)" class="alert alert-dismissable" th:classappend="'alert- ${type}">
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
     <span th:text="${message}">Test</span>
 </div>
 <!-- Reusable modal -->
-<div th:fragment="modal (id, title)" class="modal fade" th:id="${id}" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+<div th:fragment="modal (id, title)" class="modal fade" th:id="${id}" tabindex="-1" role="dialog"
+     aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -23,6 +25,21 @@
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div th:fragment="tab(data)" class="modal fade"
+     aria-hidden="true">
+    <table class="table project-table">
+        <thead>
+        <tr>
+            <th th:text="#{media.table.thumbnail}"></th>
+            <th th:text="#{media.table.link}"></th>
+            <th th:text="#{media.table.tags}"></th>
+        </tr>
+        </thead>
+        <tr><td th:text="${data}"></td></tr>
+    </table>
 </div><!-- /.modal -->
 </body>
 </html>

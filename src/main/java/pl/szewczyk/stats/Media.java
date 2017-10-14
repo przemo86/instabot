@@ -1,5 +1,6 @@
 package pl.szewczyk.stats;
 
+import org.jinstagram.entity.common.Location;
 import org.jinstagram.entity.users.feed.MediaFeedData;
 
 import javax.persistence.*;
@@ -15,7 +16,7 @@ import java.util.Set;
 @Entity
 @Table(name = "media", schema = "instabot", indexes = {@Index(name = "mediaid", columnList = "mediaId")})
 @XmlRootElement
-public class Media implements Serializable{
+public class Media implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_seq")
     @SequenceGenerator(name = "media_seq", sequenceName = "media_seq", allocationSize = 1, schema = "instabot")
@@ -31,9 +32,21 @@ public class Media implements Serializable{
 
     private String link;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "tags", schema = "instabot")
     private Set<String> tags = new HashSet<>();
+
+    @Transient
+    private String user;
+
+    @Transient
+    private Set<String> userFollowed;
+
+    @Transient
+    private Set<String> userFollows;
+
+    @Transient
+    private Location location;
 
     public Media() {
     }
@@ -92,5 +105,37 @@ public class Media implements Serializable{
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public Set<String> getUserFollowed() {
+        return userFollowed;
+    }
+
+    public void setUserFollowed(Set<String> userFollowed) {
+        this.userFollowed = userFollowed;
+    }
+
+    public Set<String> getUserFollows() {
+        return userFollows;
+    }
+
+    public void setUserFollows(Set<String> userFollows) {
+        this.userFollows = userFollows;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 }

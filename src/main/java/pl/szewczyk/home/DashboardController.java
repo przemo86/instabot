@@ -65,7 +65,7 @@ class DashboardController {
                     if ((pair.getLeft() != null) && (pair.getRight() != null)) {
                         pojo.setLikeRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
                         pojo.setLikeNextFire(pair.getRight().getNextFireTime());
-                        pojo.setLikeHits(projectRepository.count('L', project));
+                        pojo.setLikeHits(projectRepository.countLikedMedia(project));
                     }
                 }
 
@@ -78,7 +78,7 @@ class DashboardController {
                     if ((pair.getLeft() != null) && (pair.getRight() != null)) {
                         pojo.setCommentRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
                         pojo.setCommentNextFire(pair.getRight().getNextFireTime());
-                        pojo.setCommentHits(projectRepository.count('C', project));
+                        pojo.setCommentHits(projectRepository.countCommentedMedia(project));
                     }
                 }
                 if ((pojo.getLikeRunningTime() != null) || (pojo.getCommentRunningTime() != null))
@@ -94,7 +94,7 @@ class DashboardController {
     }
 
     @PostMapping("/kill")
-    public String greetingSubmit(@RequestParam Long id, Principal principal) {
+    public String killProject(@RequestParam Long id, Principal principal) {
         if (principal != null) {
 
 

@@ -4,8 +4,6 @@ import pl.szewczyk.account.Account;
 
 import javax.persistence.*;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 
 @SuppressWarnings("serial")
 @Entity
@@ -32,13 +30,9 @@ public class Project implements java.io.Serializable {
     @JoinColumn(name = "owner_id")
     private Account owner;
 
-    @ElementCollection
-    @CollectionTable(name = "includetags", schema = "instabot")
-       private Set<String> includeHashtags = new HashSet<>();
+    private String includeHashtags;
 
-    @ElementCollection
-    @CollectionTable(name = "excludetags", schema = "instabot")
-    private Set<String> excludeHashtags = new HashSet<>();
+    private String excludeHashtags;
 
     private String commentString;
 
@@ -52,12 +46,12 @@ public class Project implements java.io.Serializable {
     private HashtagSearchEnum hashtagSearch;
 
     @Column(name = "_like")
-    private boolean like;
+    private Boolean like = false;
 
-    private boolean comment;
+    @Column(name = "_comment")
+    private Boolean comment = false;
 
     protected Project() {
-
     }
 
     public Long getId() {
@@ -92,6 +86,14 @@ public class Project implements java.io.Serializable {
         this.customer = customer;
     }
 
+    public String getInstagramAccount() {
+        return instagramAccount;
+    }
+
+    public void setInstagramAccount(String instagramAccount) {
+        this.instagramAccount = instagramAccount;
+    }
+
     public boolean isStatus() {
         return status;
     }
@@ -100,19 +102,27 @@ public class Project implements java.io.Serializable {
         this.status = status;
     }
 
-    public Set<String> getIncludeHashtags() {
+    public Account getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Account owner) {
+        this.owner = owner;
+    }
+
+    public String getIncludeHashtags() {
         return includeHashtags;
     }
 
-    public void setIncludeHashtags(Set<String> includeHashtags) {
+    public void setIncludeHashtags(String includeHashtags) {
         this.includeHashtags = includeHashtags;
     }
 
-    public Set<String> getExcludeHashtags() {
+    public String getExcludeHashtags() {
         return excludeHashtags;
     }
 
-    public void setExcludeHashtags(Set<String> excludeHashtags) {
+    public void setExcludeHashtags(String excludeHashtags) {
         this.excludeHashtags = excludeHashtags;
     }
 
@@ -148,35 +158,20 @@ public class Project implements java.io.Serializable {
         this.hashtagSearch = hashtagSearch;
     }
 
-    public boolean isLike() {
+    public Boolean isLike() {
         return like;
     }
 
-    public void setLike(boolean like) {
+    public void setLike(Boolean like) {
         this.like = like;
     }
 
-    public boolean isComment() {
+    public Boolean isComment() {
         return comment;
     }
 
-    public void setComment(boolean comment) {
+    public void setComment(Boolean comment) {
         this.comment = comment;
     }
-
-    public String getInstagramAccount() {
-        return instagramAccount;
-    }
-
-    public void setInstagramAccount(String instagramAccount) {
-        this.instagramAccount = instagramAccount;
-    }
-
-    public Account getOwner() {
-        return owner;
-    }
-
-    public void setOwner(Account owner) {
-        this.owner = owner;
-    }
 }
+

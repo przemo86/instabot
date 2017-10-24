@@ -3,11 +3,7 @@ package pl.szewczyk.projects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @LikeCorrect
 @CommentCorrect
@@ -40,9 +36,9 @@ public class ProjectForm implements java.io.Serializable {
     @NotNull(message = "Wybierz rodzaj poszukiwania hashtagów")
     private HashtagSearchEnum hashtagSearch;
 
-    private boolean like;
+    private Boolean like;
 
-    private boolean comment;
+    private Boolean comment;
 
 
     public ProjectForm(Project project) {
@@ -50,8 +46,8 @@ public class ProjectForm implements java.io.Serializable {
         this.customer = project.getCustomer();
         this.instagramAccount = project.getInstagramAccount();
         this.status = project.isStatus();
-        this.includeHashtags = String.join(",",project.getIncludeHashtags().stream().map(s -> s.trim()).collect(Collectors.toList()));
-        this.excludeHashtags = String.join(",",project.getExcludeHashtags().stream().map(s -> s.trim()).collect(Collectors.toList()));
+        this.includeHashtags = project.getIncludeHashtags();
+        this.excludeHashtags = project.getExcludeHashtags();
         this.commentString = project.getCommentString();
         this.likeFrequency = project.getLikeFrequency();
         this.commentFrequency = project.getCommentFrequency();
@@ -73,15 +69,8 @@ public class ProjectForm implements java.io.Serializable {
         project.setCustomer(this.customer);
         project.setInstagramAccount(this.instagramAccount);
         project.setStatus(this.status);
-        if (Objects.nonNull(includeHashtags))
-            project.setIncludeHashtags(new HashSet(Arrays.asList(includeHashtags.split(","))));
-        else
-            project.setIncludeHashtags(new HashSet());
-        if (Objects.nonNull(excludeHashtags))
-            project.setExcludeHashtags(new HashSet(Arrays.asList(excludeHashtags.split(","))));
-        else
-            project.setExcludeHashtags(new HashSet());
-
+        project.setIncludeHashtags(this.includeHashtags);
+        project.setExcludeHashtags(this.excludeHashtags);
         project.setCommentString(this.commentString);
         project.setLikeFrequency(this.likeFrequency);
         project.setCommentFrequency(this.commentFrequency);
@@ -166,19 +155,19 @@ public class ProjectForm implements java.io.Serializable {
         this.hashtagSearch = hashtagSearch;
     }
 
-    public boolean isLike() {
+    public Boolean getLike() {
         return like;
     }
 
-    public void setLike(boolean like) {
+    public void setLike(Boolean like) {
         this.like = like;
     }
 
-    public boolean isComment() {
+    public Boolean getComment() {
         return comment;
     }
 
-    public void setComment(boolean comment) {
+    public void setComment(Boolean comment) {
         this.comment = comment;
     }
 

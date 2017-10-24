@@ -5544,7 +5544,7 @@ a.thumbnail.active, a.thumbnail:focus, a.thumbnail:hover {
     float: left;
     width: 0;
     height: 100%;
-    font-size: 12px;
+    font-size: 18px;
     line-height: 20px;
     color: #fff;
     text-align: center;

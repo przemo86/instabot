@@ -10,112 +10,57 @@
         <div th:replace="fragments/layout :: upperBar"></div>
         <div class="container-fluid gradient-background">
             <p class="lead text-left site-title">
-                Statystyki
+            <span th:text="#{navigation.stats}">
+            </span> -
+                <span th:text="${project.name}">
+            </span>
+                <span><button type="button" class="btn btn-info" data-toggle="collapse"
+                              data-target="#det">Szczegóły</button></span>
+                <div>
+
+
+                    <div class="collapse" id="det">
+            <p><span th:text="#{project.active}"></span> - <span th:text="${project.status ? 'Tak' : 'Nie'}"></span></p>
+            <p><span th:text="#{project.customer}"></span> - <span th:text="${project.customer}"></span></p>
+            <p><span th:text="#{project.hashtag.include}"></span> - <span th:text="${project.includeHashtags}"></span>
             </p>
+            <p><span th:text="#{project.hashtag.exclude}"></span> - <span th:text="${project.excludeHashtags}"></span>
+            </p>
+            <p><span th:text="#{project.activity.comment}"></span> - <span
+                    th:text="${project.comment ? 'Tak' : 'Nie'}"></span><span th:if="${project.comment}"> : </span><span
+                    th:if="${project.comment}" th:text="${project.commentFrequency.frequency + '/godz'}"></span></p>
+            <p><span th:text="#{project.activity.like}"></span> - <span
+                    th:text="${project.like ? 'Tak' : 'Nie'}"></span> <span th:if="${project.like}"> : </span><span
+                    th:if="${project.like}" th:text="${project.likeFrequency.frequency + '/godz'}"></span></p>
+            <p><span th:text="#{project.comment}"></span> - <span th:text="${project.commentString}"></span></p>
+
         </div>
-        <span th:text="${project.name}"/>
-        <canvas id="canvas" style="width: 100%; height: 500px;"></canvas>
-
-        <div id="details">
-
-        </div>
-
-        <script th:inline="javascript">
-            var chartData = [[${chartData}]];
-            var mylabels = [[${chartLabels}]];
-            var chartLabels = [];
-            mylabels.forEach(function (lbl) {
-                chartLabels.push(new Date(lbl.split('###')[0]));
-            });
-
-
-            var ctx = $("#canvas")[0].getContext("2d");
-
-            var myLineChart = new Chart(ctx, {
-                type: "line",
-
-                data: {
-                    datasets: [
-                        {
-//                            steppedLine: 'before',
-                            label: [[${project.name}]],
-                            data: chartData,
-                            borderColor: [[${chartColor}]],
-                            fill: false
-                        }
-                    ],
-                    labels: chartLabels
-                },
-                options: {
-                    scales: {
-                        xAxes: [
-                            {
-                                type: 'time',
-                                time: {
-                                    displayFormats: {
-                                        second: 'YYYY/MMM HH:mm:ss'
-                                    }
-                                },
-                                distribution: 'series',
-                                position: "bottom",
-                                ticks: {
-                                    autoSkip: true,
-                                    maxRotation: 90,
-                                    minRotation: 90
-                                }
-                            }
-                        ],
-                        yAxes: [{
-                            scaleLabel: {
-                                display: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Ilość trafień'
-                                }
-                            }
-                        }]
-                    }
-                }
-            });
-
-            $("#canvas").click(
-                function (evt) {
-                    var activePoints = myLineChart.getElementsAtEvent(evt);
-                    var statId = mylabels[activePoints[0]._index].split('###')[1];
-                    $.ajax({
-                        url: "/stats/project?id=" + statId,
-                        cache: false
-                    }).done(function (html) {
-
-                        var tab = '<table class="table project-table">' +
-                            '                            <thead>' +
-                            '                            <tr>' +
-                            '                            <th>Media</th>' +
-                            '                            <th>Link</th>' +
-                            '                            <th>Tags</th>' +
-                            '                            </tr>' +
-                            '                            </thead>';
-                        for (var row=0; row < html.length; row++) {
-
-                            tab += '<tr>';
-                            tab += '<td><img style="width: 50px" src="' + html[row].thumbnailUri + '" alt="' + html[row].thumbnailUri + '"/></td>';
-                            tab += '<td><a href="' + html[row].link + '" target="_blank">' + html[row].link + '</a></td>';
-                            tab += '<td>' + html[row].tags + '</td>';
-
-                            tab += '</tr>';
-                        }
-
-                        tab += '</table>';
-
-                        $("#details").empty();
-                        $("#details").append(tab);
-                    });
-                }
-            );
-        </script>
-
-        <div th:replace="fragments/layout :: footer"></div>
     </div>
+    </p>
+</div>
+<ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#activity"><span class="fa fa-bar-chart" aria-hidden="true">&nbsp;&nbsp;</span>Aktywność</a>
+    </li>
+    <li><a data-toggle="tab" href="#tags"><span class="fa fa-hashtag" aria-hidden="true">&nbsp;&nbsp;</span>Hashtagi</a>
+    </li>
+    <li><a data-toggle="tab" href="#users"><span class="fa fa-user-circle-o"
+                                                 aria-hidden="true">&nbsp;&nbsp;</span>Użytkownicy</a></li>
+</ul>
+<div class="tab-content">
+    <div id="activity" class="tab-pane fade in active">
+
+        <div th:replace="stats/activity :: activity"/>
+
+    </div>
+    <div id="tags" class="tab-pane fade">
+        <div th:replace="stats/tags :: stats(projectId=${project.id})"/>
+    </div>
+    <div id="users" class="tab-pane fade">
+        <div th:replace="stats/users :: stats(projectId=${project.id})"/>
+    </div>
+</div>
+
+</div>
 
 </div>
 </body>

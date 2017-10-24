@@ -66,7 +66,7 @@ public class ProjectsController {
     public String project(Model model, @RequestParam(value = "id") Long id, HttpServletRequest request) {
 
         Project project = null;
-        project = em.createQuery("SELECT p FROM Project p left join fetch p.excludeHashtags left JOIN FETCH p.includeHashtags where p.id = :id", Project.class).setParameter("id", id).getSingleResult();
+        project = em.createQuery("SELECT p FROM Project p where p.id = :id", Project.class).setParameter("id", id).getSingleResult();
         System.out.println(project.getName());
         ProjectForm projectForm = new ProjectForm(project);
         request.getSession().setAttribute("project", project);
@@ -90,16 +90,15 @@ public class ProjectsController {
         project = projectForm.toEntity(project);
         projectRepository.save(project);
 
+        try {
+            projectScheduleRunner.interruptJob(project);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
         System.out.println("SAVING PROJECT");
 
         if (project.isStatus()) {
             projectScheduleRunner.startProject(project);
-        } else {
-            try {
-                projectScheduleRunner.interruptJob(project);
-            } catch (SchedulerException e) {
-                e.printStackTrace();
-            }
         }
 
         return "redirect:projects";

@@ -6,7 +6,7 @@
 </head>
 <body>
 <!-- Reusable alert -->
-<div th:fragment="alert (type, message)" class="alert alert-dismissable" th:classappend="'alert- ${type}">
+<div th:fragment="alert (type, message)" class="alert alert-dismissable" th:classappend="'alert-' + ${type}">
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
     <span th:text="${message}">Test</span>
 </div>
@@ -28,18 +28,6 @@
 </div><!-- /.modal -->
 
 
-<div th:fragment="tab(data)" class="modal fade"
-     aria-hidden="true">
-    <table class="table project-table">
-        <thead>
-        <tr>
-            <th th:text="#{media.table.thumbnail}"></th>
-            <th th:text="#{media.table.link}"></th>
-            <th th:text="#{media.table.tags}"></th>
-        </tr>
-        </thead>
-        <tr><td th:text="${data}"></td></tr>
-    </table>
-</div><!-- /.modal -->
+
 </body>
 </html>

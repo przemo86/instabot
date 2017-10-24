@@ -1,5 +1,6 @@
 package pl.szewczyk.stats;
 
+import com.google.gson.annotations.Expose;
 import org.jinstagram.entity.common.Location;
 import org.jinstagram.entity.users.feed.MediaFeedData;
 
@@ -7,6 +8,7 @@ import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,29 +25,44 @@ public class Media implements Serializable {
     private Long id;
 
     @ManyToOne()
+    @Expose
     private Statistic statistic;
-
 
     private String mediaId;
 
+    @Expose
     private String thumbnailUri;
 
+    @Expose
     private String link;
 
+    @Expose
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "tags", schema = "instabot")
     private Set<String> tags = new HashSet<>();
 
     @Transient
-    private String user;
+    @Expose
+    private String userName;
 
     @Transient
-    private Set<String> userFollowed;
+    @Expose
+    private String userProfileImage;
 
     @Transient
-    private Set<String> userFollows;
+    @Expose
+    private Integer userFollowed;
 
     @Transient
+    @Expose
+    private List<String> userLikes;
+
+    @Transient
+    @Expose
+    private List<String> comments;
+
+    @Transient
+    @Expose
     private Location location;
 
     public Media() {
@@ -107,28 +124,44 @@ public class Media implements Serializable {
         this.tags = tags;
     }
 
-    public String getUser() {
-        return user;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public Set<String> getUserFollowed() {
+    public String getUserProfileImage() {
+        return userProfileImage;
+    }
+
+    public void setUserProfileImage(String userProfileImage) {
+        this.userProfileImage = userProfileImage;
+    }
+
+    public Integer getUserFollowed() {
         return userFollowed;
     }
 
-    public void setUserFollowed(Set<String> userFollowed) {
+    public void setUserFollowed(Integer userFollowed) {
         this.userFollowed = userFollowed;
     }
 
-    public Set<String> getUserFollows() {
-        return userFollows;
+    public List<String> getUserLikes() {
+        return userLikes;
     }
 
-    public void setUserFollows(Set<String> userFollows) {
-        this.userFollows = userFollows;
+    public void setUserLikes(List<String> userLikes) {
+        this.userLikes = userLikes;
+    }
+
+    public List<String> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<String> comments) {
+        this.comments = comments;
     }
 
     public Location getLocation() {

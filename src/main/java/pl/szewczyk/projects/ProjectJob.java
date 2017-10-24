@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * Created by przem on 20.09.2017.
  */
 
-public abstract class ProjectJob implements Job {
+public class ProjectJob implements Job {
     @Autowired
     private ProjectRepository projectRepository;
 
@@ -43,7 +43,8 @@ public abstract class ProjectJob implements Job {
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         Long id = jobExecutionContext.getJobDetail().getJobDataMap().getLong("projectId");
-        Character kind = jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind");
+        int comment = jobExecutionContext.getJobDetail().getJobDataMap().getInt("comment");
+        int like = jobExecutionContext.getJobDetail().getJobDataMap().getInt("like");
         System.out.println("Project ID " + id);
 
         if (project == null) {
@@ -55,7 +56,7 @@ public abstract class ProjectJob implements Job {
 
         Map<String, List<MediaFeedData>> tags = new HashMap<>();
 
-        for (String tag : project.getIncludeHashtags()) {
+        for (String tag : project.getIncludeHashtags().split(",")) {
             try {
                 List<MediaFeedData> list = searchTag(tag, instaUser.getAccessToken());
                 if (list != null)
@@ -78,12 +79,15 @@ public abstract class ProjectJob implements Job {
                     MediaFeedData mediaFeedData = it.next();
                     System.out.println("TAGS = " + mediaFeedData.getTags());
                     System.out.println("EXCLUDE " + project.getExcludeHashtags());
-                    if (Collections.disjoint(mediaFeedData.getTags(), project.getExcludeHashtags())) {
+                    if (Collections.disjoint(mediaFeedData.getTags(), Arrays.asList(project.getExcludeHashtags().split(",")))) {
                         try {
-                            System.out.println("CHECKING    === " + projectRepository.countMediaId(mediaFeedData.getId(), kind, project));
-                            if (projectRepository.countMediaId(mediaFeedData.getId(), kind, project) == 0L) {
+                            long cntMedia = projectRepository.countMediaId(mediaFeedData.getId(), project);
+                            System.out.println("CHECKING    === " + cntMedia);
+                            if (cntMedia == 0L) {
                                 System.out.println("ODPALAM ROBOTE");
-                                doJob(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
+                                comment(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
+                                like(mediaFeedData, instaUser.getAccessToken());
+//                                doJob(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
                             } else {
                                 System.out.println("JUZ TO ROBILEM...");
                                 it.remove();
@@ -95,10 +99,9 @@ public abstract class ProjectJob implements Job {
                         it.remove();
                     }
                 }
-                System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
+                System.out.println("SAVE STATS WITH SEARCHES " + searches.size());
                 try {
                     Statistic statistic = new Statistic(project, new HashSet<>(searches));
-                    statistic.setKind(kind);
                     statisticsRepository.save(statistic);
                 } catch (Exception e) {
                     System.out.println("EXCEPTION " + e.getMessage());
@@ -119,13 +122,15 @@ public abstract class ProjectJob implements Job {
                     MediaFeedData mediaFeedData = it.next();
                     System.out.println("TAGS = " + mediaFeedData.getTags());
                     System.out.println("EXCLUDE " + project.getExcludeHashtags());
-                    if (Collections.disjoint(mediaFeedData.getTags(), project.getExcludeHashtags()) &&
-                            mediaFeedData.getTags().containsAll(project.getIncludeHashtags())) {
+                    if (Collections.disjoint(mediaFeedData.getTags(), Arrays.asList(project.getExcludeHashtags().split(","))) &&
+                            mediaFeedData.getTags().containsAll(Arrays.asList(project.getIncludeHashtags().split(",")))) {
                         try {
-                            System.out.println("CHECKING    === " + projectRepository.countMediaId(mediaFeedData.getId(), kind, project));
-                            if (projectRepository.countMediaId(mediaFeedData.getId(), kind, project) == 0L) {
-                                System.out.println("ODPALAM ROBOTE");
-                                doJob(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
+                            long cntMedia = projectRepository.countMediaId(mediaFeedData.getId(), project);
+                            System.out.println("CHECKING    === " + cntMedia);
+                            if (cntMedia == 0L) {
+                                comment(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
+                                like(mediaFeedData, instaUser.getAccessToken());
+//                                doJob(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
                             } else {
                                 System.out.println("JUZ TO ROBILEM...");
                                 it.remove();
@@ -140,7 +145,6 @@ public abstract class ProjectJob implements Job {
                 System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
                 try {
                     Statistic statistic = new Statistic(project, new HashSet<>(searches));
-                    statistic.setKind(kind);
                     statisticsRepository.save(statistic);
                 } catch (Exception e) {
                     System.out.println("EXCEPTION " + e.getMessage());
@@ -173,6 +177,17 @@ public abstract class ProjectJob implements Job {
     }
 
 
-    abstract void doJob(MediaFeedData mediaFeedData, String comment, String authToken) throws InstagramException;
+    private void comment(MediaFeedData mediaFeedData, String comment, String authToken) throws InstagramException {
+        Token accessToken = new Token(authToken, InstaConstants.ClientSecret);
+        Instagram instagram = new Instagram(accessToken);
+        instagram.setMediaComments(mediaFeedData.getId(), comment);
+    }
+
+    public void like(MediaFeedData mediaFeedData, String authToken) throws InstagramException {
+        Token accessToken = new Token(authToken, InstaConstants.ClientSecret);
+        Instagram instagram = new Instagram(accessToken);
+
+        instagram.setUserLike(mediaFeedData.getId());
+    }
 
 }

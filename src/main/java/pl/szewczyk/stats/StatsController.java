@@ -38,11 +38,11 @@ public class StatsController {
 //        String name = auth.getName(); //get logged in username
         Project project = projectRepository.znajdz(projectId);
         model.addAttribute("project", project);
-//        List<Object[]> ret = em.createNativeQuery("select * from (select s.time, count(m.mediaid) from instabot.statistics s " +
+//        List<Object[]> ret = em.createNativeQuery("select * from (select s.time, count(m.mediaid), s.id from instabot.statistics s " +
 //                "   left outer join instabot.statistics_media sm on s.id = sm.statistic_id " +
 //                "   left outer join instabot.media m on sm.media_id = m.id where s.projectid = :project" +
-//                "   group by s.time order by s.time) t limit 100").setParameter("project", projectId).getResultList();
-        List<Object[]> ret = em.createNativeQuery("select * from (select s.time, trunc(random() * 9 + 1), s.id from instabot.statistics s " +
+//                "   group by s.time, s.id order by s.time) t limit 100").setParameter("project", projectId).getResultList();
+        List<Object[]> ret = em.createNativeQuery("select * from (select s.time, trunc(abs(cos(radians(EXTRACT('minute' from s.time)*6))+1)*3), s.id from instabot.statistics s " +
                 "   left outer join instabot.statistics_media sm on s.id = sm.statistic_id " +
                 "   left outer join instabot.media m on sm.media_id = m.id where s.projectid = :project" +
                 "   group by s.time,s.id order by s.time) t limit 100").setParameter("project", projectId).getResultList();

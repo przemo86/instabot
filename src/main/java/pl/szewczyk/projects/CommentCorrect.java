@@ -45,7 +45,7 @@ class CommentCorrectValidator implements ConstraintValidator<CommentCorrect, Obj
     public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
 
         ProjectForm projectForm = (ProjectForm) o;
-        if (projectForm.isComment()) {
+        if (projectForm.getComment() != null && projectForm.getComment()) {
             if (projectForm.getCommentFrequency() != null)
                 if (projectForm.getCommentString() != null)
                     if (!projectForm.getCommentString().equals("")) {

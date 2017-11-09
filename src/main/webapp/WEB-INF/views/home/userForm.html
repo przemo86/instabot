@@ -115,12 +115,14 @@
                     </div>
 
                     <div class="col-lg-7">
-                        <div class="row" th:classappend="${#fields.hasErrors('role')}? 'has-error'">
+                        <div class="row" th:classappend="${#fields.hasErrors('role')}? 'has-error'" id="userAdding">
 
                             <label for="role" class="col-lg-4 control-label" th:text="#{user.instagram.user}"></label>
                             <div class=" form-group col-sm-8">
                                 <button type="button" class="media-middle input-control btn btn-default" id="addInsta"
-                                        th:text="#{user.instagram.user}" name="insta"></button>
+                                        th:if="*{#lists.size(instaUsers) < 1}"
+                                        th:text="#{user.instagram.user}"
+                                        name="insta"></button>
                             </div>
                         </div>
                         <div class="row" th:fragment="instaUserTable">
@@ -159,6 +161,7 @@
     window.addEventListener('message', receiveMessage, false);
     function receiveMessage(event) {
         $("#resultsBlock").load(url);
+        $('#userAdding').hide();
     }
 
 

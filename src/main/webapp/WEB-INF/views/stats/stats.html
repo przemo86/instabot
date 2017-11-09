@@ -43,8 +43,8 @@
     </li>
     <li><a data-toggle="tab" href="#tags"><span class="fa fa-hashtag" aria-hidden="true">&nbsp;&nbsp;</span>Hashtagi</a>
     </li>
-    <li><a data-toggle="tab" href="#users"><span class="fa fa-user-circle-o"
-                                                 aria-hidden="true">&nbsp;&nbsp;</span>Użytkownicy</a></li>
+    <!--<li><a data-toggle="tab" href="#users"><span class="fa fa-user-circle-o"-->
+                                                 <!--aria-hidden="true">&nbsp;&nbsp;</span>Użytkownicy</a></li>-->
 </ul>
 <div class="tab-content">
     <div id="activity" class="tab-pane fade in active">
@@ -55,9 +55,9 @@
     <div id="tags" class="tab-pane fade">
         <div th:replace="stats/tags :: stats(projectId=${project.id})"/>
     </div>
-    <div id="users" class="tab-pane fade">
-        <div th:replace="stats/users :: stats(projectId=${project.id})"/>
-    </div>
+    <!--<div id="users" class="tab-pane fade">-->
+        <!--<div th:replace="stats/users :: stats(projectId=${project.id})"/>-->
+    <!--</div>-->
 </div>
 
 </div>

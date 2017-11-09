@@ -65,7 +65,7 @@ class DashboardController {
                     if ((pair.getLeft() != null) && (pair.getRight() != null)) {
                         pojo.setLikeRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
                         pojo.setLikeNextFire(pair.getRight().getNextFireTime());
-                        pojo.setLikeHits(projectRepository.countLikedMedia(project));
+                        pojo.setLikeHits(projectRepository.count('L', project));
                     }
                 }
 
@@ -78,7 +78,7 @@ class DashboardController {
                     if ((pair.getLeft() != null) && (pair.getRight() != null)) {
                         pojo.setCommentRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
                         pojo.setCommentNextFire(pair.getRight().getNextFireTime());
-                        pojo.setCommentHits(projectRepository.countCommentedMedia(project));
+                        pojo.setCommentHits(projectRepository.count('C', project));
                     }
                 }
                 if ((pojo.getLikeRunningTime() != null) || (pojo.getCommentRunningTime() != null))

@@ -16,9 +16,7 @@ import java.util.Set;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "statistics", schema = "instabot"
-        //, indexes = {@Index(name = "statistic_project_idx", columnList = "projectid")}
-        )
+@Table(name = "statistics", schema = "instabot", indexes = {@Index(name = "statistic_project_idx", columnList = "kind,projectid")})
 public class Statistic implements Serializable {
 
     @Id
@@ -41,13 +39,7 @@ public class Statistic implements Serializable {
     @Enumerated(EnumType.STRING)
     private HashtagSearchEnum hashtagSearch;
 
-    @Basic
-    @Column(name = "_like")
-    private Boolean like;
-
-    @Basic
-    @Column(name = "_comment")
-    private Boolean comment;
+    private Character kind;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Media.class, orphanRemoval = true, cascade = CascadeType.ALL)
     private Set<Media> media = new HashSet<>();
@@ -126,20 +118,12 @@ public class Statistic implements Serializable {
         this.hashtagSearch = hashtagSearch;
     }
 
-    public Boolean getLike() {
-        return like;
+    public Character getKind() {
+        return kind;
     }
 
-    public void setLike(Boolean like) {
-        this.like = like;
-    }
-
-    public Boolean getComment() {
-        return comment;
-    }
-
-    public void setComment(Boolean comment) {
-        this.comment = comment;
+    public void setKind(Character kind) {
+        this.kind = kind;
     }
 
     public Set<Media> getMedia() {

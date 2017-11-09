@@ -36,9 +36,9 @@ public class ProjectForm implements java.io.Serializable {
     @NotNull(message = "Wybierz rodzaj poszukiwania hashtagów")
     private HashtagSearchEnum hashtagSearch;
 
-    private Boolean like;
+    private boolean like;
 
-    private Boolean comment;
+    private boolean comment;
 
 
     public ProjectForm(Project project) {
@@ -155,19 +155,19 @@ public class ProjectForm implements java.io.Serializable {
         this.hashtagSearch = hashtagSearch;
     }
 
-    public Boolean getLike() {
+    public boolean isLike() {
         return like;
     }
 
-    public void setLike(Boolean like) {
+    public void setLike(boolean like) {
         this.like = like;
     }
 
-    public Boolean getComment() {
+    public boolean isComment() {
         return comment;
     }
 
-    public void setComment(Boolean comment) {
+    public void setComment(boolean comment) {
         this.comment = comment;
     }
 

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="../../../resources/js/jquery.min.js"></script>
+<script type="text/javascript">
+    function getUrlParam(sParam)
+    {
+        var sPageURL = window.location.search.substring(1);
+        var sURLVariables = sPageURL.split('&');
+        for (var i = 0; i < sURLVariables.length; i++)
+        {
+            var sParameterName = sURLVariables[i].split('=');
+            if (sParameterName[0] == sParam)
+            {
+                return sParameterName[1];
+            }
+        }
+    }
+</script>
+</head>
+<body>
+<script type="text/javascript">
+    window.opener.postMessage({ code: getUrlParam('code')}, '*' );
+    window.close();
+</script>
+</body>
+</html>

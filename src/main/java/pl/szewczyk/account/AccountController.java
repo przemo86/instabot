@@ -1,9 +1,15 @@
 package pl.szewczyk.account;
 
-import org.json.JSONObject;
+import org.jinstagram.Instagram;
+import org.jinstagram.InstagramClient;
+import org.jinstagram.auth.InstagramAuthService;
+import org.jinstagram.auth.model.Token;
+import org.jinstagram.auth.model.Verifier;
+import org.jinstagram.auth.oauth.InstagramService;
+import org.jinstagram.entity.users.basicinfo.UserInfo;
+import org.jinstagram.entity.users.basicinfo.UserInfoData;
+import org.jinstagram.exceptions.InstagramException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,16 +26,10 @@ import pl.szewczyk.instagram.InstaUser;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URLEncoder;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -61,133 +61,162 @@ public class AccountController {
     private Logger logger = Logger.getLogger(Account.class.getName());
 
     @GetMapping("/user")
-    public String addUser(Model model) {
+    public String addUser(Model model, HttpServletRequest request) {
+        System.out.println("GET USER NO ID");
+        request.getSession(false).removeAttribute("account");
         UserForm userForm = new UserForm();
+        System.out.println(" " + userForm);
         model.addAttribute("userForm", userForm);
+        request.getSession(false).setAttribute("userForm", userForm);
         return "home/userForm";
+    }
+
+    @GetMapping(value = "/userAdded")
+    public String addInstaUser(Model model, @RequestParam(required = false, value = "code") String code,
+                               HttpServletRequest request, @RequestParam(required = false, value = "id") Long id) {
+        System.out.println("ADD INSTA USER " + code);
+        System.out.println("CODE " + request.getRequestURL().toString());
+
+        if (Objects.nonNull(code) && !code.equals("")) {
+            InstagramService service = new InstagramAuthService()
+                    .apiKey(InstaConstants.ClientID)
+                    .apiSecret(InstaConstants.ClientSecret)
+                    .callback(request.getRequestURL().toString() + (id == null ? "" : "?id=" + id))
+                    .build();
+
+            Verifier verifier = new Verifier(code);
+            Token accessToken = service.getAccessToken(verifier);
+
+            InstagramClient instagram = new Instagram(accessToken);
+
+            try {
+                UserInfo userInfo = instagram.getCurrentUserInfo();
+                request.getSession(false).setAttribute("userInfo", userInfo.getData());
+                request.getSession(false).setAttribute("accessToken", accessToken.getToken());
+            } catch (InstagramException e) {
+                e.printStackTrace();
+            }
+
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+//
+//            Map<String, String> map = new HashMap<>();
+//            map.put("code", code);
+//            map.put("client_id", InstaConstants.ClientID);
+//            map.put("client_secret", InstaConstants.ClientSecret);
+//            map.put("grant_type", "authorization_code");
+//            map.put("redirect_uri", request.getRequestURL().toString() +
+//                    (userForm.getEmail() != null ?
+//                            "?id=" + accountRepository.findOneByEmail(userForm.getEmail()).getId() :
+//                            ""));
+//
+//            try {
+//                String uri = "https://api.instagram.com/oauth/access_token";
+//                HttpURLConnection conn = (HttpURLConnection) new java.net.URL(uri).openConnection();
+//                conn.setRequestMethod("POST");
+//                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+//
+//                StringBuffer buffer = new StringBuffer();
+//                for (String key : map.keySet()) {
+//                    buffer.append(key);
+//                    buffer.append("=");
+//                    buffer.append(URLEncoder.encode(map.get(key), "UTF-8"));
+//                    buffer.append("&");
+//                }
+//                buffer.deleteCharAt(buffer.length() - 1);
+//                conn.setDoOutput(true);
+//                System.out.println("PARAMS " + buffer.toString());
+//                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
+//                outputStreamWriter.write(buffer.toString());
+//                outputStreamWriter.flush();
+//                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+//                String inputLine;
+//                StringBuffer response = new StringBuffer();
+//
+//                while ((inputLine = in.readLine()) != null) {
+//                    response.append(inputLine);
+//                }
+//                in.close();
+//                logger.severe("gggg");
+//                conn.disconnect();
+//                logger.severe("CLOSE = ");
+//                String responseString = response.toString();
+//                JSONObject jsonObject = new JSONObject(responseString);
+//                logger.severe("CLOSE 2");
+//                InstaUser instaUser = new InstaUser();
+//                instaUser.setAccessToken(jsonObject.getString("access_token"));
+//                logger.severe("ACCESS TOKEN NOWY = " + jsonObject.getString("access_token"));
+//                instaUser.setId(jsonObject.getJSONObject("user").getLong("id"));
+//                instaUser.setInstaUserName(jsonObject.getJSONObject("user").getString("username"));
+//                instaUser.setProfilePictureURL(jsonObject.getJSONObject("user").getString("profile_picture"));
+//                instaUser.setFullName(jsonObject.getJSONObject("user").getString("full_name"));
+//                instaUser.setBio(jsonObject.getJSONObject("user").getString("bio"));
+//                instaUser.setWebsite(jsonObject.getJSONObject("user").getString("website"));
+//                instaUser.setBusiness(jsonObject.getJSONObject("user").getBoolean("is_business"));
+//                logger.severe("CLOSE 2");
+//                if (userForm.getInstaUsers().contains(instaUser)) {
+//                    userForm.getInstaUsers().remove(instaUser);
+//                }
+//
+//                if (userForm.getInstaUsers().contains(instaUser)) {
+//                    userForm.getInstaUsers().remove(instaUser);
+//                }
+//
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                logger.severe("HAUA BAUA " + e.getMessage());
+//            }
+
+
+        } else {
+            model.addAttribute("error", "Nieznany błąd");
+            logger.severe("2");
+
+        }
+        return "home/instaResponse";
     }
 
     @GetMapping(value = "/user", params = {"id"})
     @PreAuthorize("hasRole('ROLE_ADMIN') or @accountRepository.findOneByEmail(#principal.name).id == #id")
     public String user(Model model, @P("id") @RequestParam(value = "id") Long id,
-                       @RequestParam(value = "code", required = false) String code,
-                       @RequestParam(value = "error", required = false) String error,
-                       @RequestParam(value = "error_reason", required = false) String error_reason,
-                       @RequestParam(value = "error_description", required = false) String error_description,
+//                       @RequestParam(value = "code", required = false) String code,
+//                       @RequestParam(value = "error", required = false) String error,
+//                       @RequestParam(value = "error_reason", required = false) String error_reason,
+//                       @RequestParam(value = "error_description", required = false) String error_description,
                        HttpServletRequest request, @P("principal") Principal principal) {
-
+        System.out.println("GET USER ID " + id);
         Account account = em.createQuery("select a from Account a left join fetch a.instaUsers where a.id = :id", Account.class).setParameter("id", id).getSingleResult();
         request.getSession().setAttribute("account", account);
-        logger.severe("11");
         UserForm userForm = new UserForm(account);
-        logger.severe("222");
+        System.out.println(" " + userForm);
+        model.addAttribute("id", account.getId());
         model.addAttribute("userForm", userForm);
 
+//        model.addAttribute("error", error);
+//        model.addAttribute("error_reason", error_reason);
+//        model.addAttribute("error_description", error_description);
 
-        logger.severe("1 " + code);
-        logger.severe("errorrrs");
-        model.addAttribute("error", error);
-        model.addAttribute("error_reason", error_reason);
-        model.addAttribute("error_description", error_description);
+        request.getSession(false).setAttribute("userForm", userForm);
+        System.out.println("get ID " + userForm);
 
-
-        logger.severe("2");
-        if (Objects.nonNull(code) && !code.equals("")) {
-            logger.severe("CALLING INSTA");
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-            Map<String, String> map = new HashMap<>();
-            map.put("code", code);
-            map.put("client_id", InstaConstants.ClientID);
-            map.put("client_secret", InstaConstants.ClientSecret);
-            map.put("grant_type", "authorization_code");
-            map.put("redirect_uri", request.getRequestURL().toString() + "?id=" + account.getId());
-
-            try {
-                String uri = "https://api.instagram.com/oauth/access_token";
-                HttpURLConnection conn = (HttpURLConnection) new java.net.URL(uri).openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-                StringBuffer buffer = new StringBuffer();
-                for (String key : map.keySet()) {
-                    buffer.append(key);
-                    buffer.append("=");
-                    buffer.append(URLEncoder.encode(map.get(key), "UTF-8"));
-                    buffer.append("&");
-                }
-                buffer.deleteCharAt(buffer.length() - 1);
-                conn.setDoOutput(true);
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
-                outputStreamWriter.write(buffer.toString());
-                outputStreamWriter.flush();
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuffer response = new StringBuffer();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                logger.severe("gggg");
-                conn.disconnect();
-                logger.severe("CLOSE = ");
-                String responseString = response.toString();
-                JSONObject jsonObject = new JSONObject(responseString);
-                logger.severe("CLOSE 2");
-                InstaUser instaUser = new InstaUser();
-                instaUser.setAccessToken(jsonObject.getString("access_token"));
-                logger.severe("ACCESS TOKEN NOWY = " + jsonObject.getString("access_token"));
-                instaUser.setId(jsonObject.getJSONObject("user").getLong("id"));
-                instaUser.setInstaUserName(jsonObject.getJSONObject("user").getString("username"));
-                instaUser.setProfilePictureURL(jsonObject.getJSONObject("user").getString("profile_picture"));
-                instaUser.setFullName(jsonObject.getJSONObject("user").getString("full_name"));
-                instaUser.setBio(jsonObject.getJSONObject("user").getString("bio"));
-                instaUser.setWebsite(jsonObject.getJSONObject("user").getString("website"));
-                instaUser.setBusiness(jsonObject.getJSONObject("user").getBoolean("is_business"));
-                logger.severe("CLOSE 2");
-                if (userForm.getInstaUsers().contains(instaUser)) {
-                    userForm.getInstaUsers().remove(instaUser);
-                }
-                userForm.getInstaUsers().add(instaUser);
-
-                if (account.getInstaUsers().contains(instaUser)) {
-                    account.getInstaUsers().remove(instaUser);
-                }
-                account.getInstaUsers().add(instaUser);
-
-                logger.severe("SAVING");
-//                em.createNativeQuery("INSERT into log VALUES (CURRENT_TIMESTAMP , 'merging')").executeUpdate();
-
-                instaUserRepository.save(instaUser);
-                logger.severe("SAVED");
-            } catch (Exception e) {
-                e.printStackTrace();
-                logger.severe("HAUA BAUA " + e.getMessage());
-            }
-
-
-            return "home/userForm";
-        } else {
-            model.addAttribute("error", "Nieznany błąd");
-            logger.severe("2");
-
-            return "home/userForm";
-        }
+        return "home/userForm";
 
     }
 
-    @PostMapping(path = "user", params = "save")
+    @PostMapping(path = "user", params = {"save"})
     public String save(@Valid @ModelAttribute UserForm userForm, Errors errors, HttpServletRequest request) {
-        logger.severe("SAVE");
+        System.out.println("save " + errors);
+        System.out.println("save " + userForm);
         Account account = (Account) request.getSession().getAttribute("account");
         if (account != null) {
+            System.out.println(account.getEmail());
+            System.out.println(userForm.getEmail());
             if (!account.getEmail().equals(userForm.getEmail())) {
                 logger.severe("NIBY ZE ERROR?");
                 return "home/userForm";
             }
+        } else {
+            account = userForm.createAccount();
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -201,7 +230,10 @@ public class AccountController {
 
         account.setLocked(userForm.isLocked());
 
-        account.setPassword(passwordEncoder.encode(userForm.getPassword()));
+        if (userForm.getPassword() != null && !"".equals(userForm.getPassword()))
+            if (userForm.getRepeatPassword() != null && !"".equals(userForm.getRepeatPassword()))
+                if (userForm.getPassword().equals(userForm.getRepeatPassword()))
+                    account.setPassword(passwordEncoder.encode(userForm.getPassword()));
         logger.severe("tostring = " + userForm.toString());
 
         accountRepository.save(account);
@@ -211,13 +243,52 @@ public class AccountController {
 
     }
 
-    @PostMapping(path = "user", params = "insta")
-    public String insta(@ModelAttribute UserForm userForm, HttpServletRequest request) {
-        System.out.println("INSTA!");
-        Account account = (Account) request.getSession().getAttribute("account");
+    @GetMapping(path = "adduser")
+    public String addInstaUser(Model model, HttpServletRequest request) {
+        System.out.println("POST USER NO ID");
+        System.out.println("MODEL " + model.asMap().keySet());
+        UserForm sessionForm = (UserForm) request.getSession(false).getAttribute("userForm");
+        System.out.println("SESION " + sessionForm);
+        UserInfoData data = (UserInfoData) request.getSession(false).getAttribute("userInfo");
+        if (data != null) {
+            System.out.println("DATA " + data);
+            InstaUser user = new InstaUser();
+            user.setBusiness(false);
+            user.setWebsite(data.getWebsite());
+            user.setBio(data.getBio());
+            user.setFullName(data.getFullName());
+            user.setProfilePictureURL(data.getProfilePicture());
+            user.setAccessToken((String) request.getSession(false).getAttribute("accessToken"));
+            user.setInstaUserName(data.getUsername());
+            user.setId(Long.valueOf(data.getId()));
 
-        return "redirect:https://www.instagram.com/oauth/authorize/?client_id=" + InstaConstants.ClientID + "&redirect_uri=" +
-                request.getRequestURL().toString() + "?id=" + account.getId()
-                + "&response_type=code&scope=public_content+likes+comments+relationships";
+            user = instaUserRepository.save(user);
+
+            sessionForm.getInstaUsers().add(user);
+            System.out.println("SESION " + sessionForm);
+//        userForm.getInstaUsers().addAll(sessionForm.getInstaUsers());
+
+            request.getSession(false).removeAttribute("userInfo");
+        }
+        model.addAttribute("userForm", sessionForm);
+        return "fragments/components :: instaUserTable";
+    }
+
+    @GetMapping(path = "user", params = {"id", "email"})
+    public String deleteInstaUser(Model model, @RequestParam("id") Long id, @RequestParam("email") String email, HttpServletRequest request) {
+
+        UserForm form = (UserForm) request.getSession(false).getAttribute("userForm");
+        Iterator<InstaUser> instaUserIterator = form.getInstaUsers().iterator();
+        while (instaUserIterator.hasNext()) {
+            InstaUser user = instaUserIterator.next();
+            if (user.getId().equals(id)) {
+                instaUserIterator.remove();
+            }
+        }
+
+        model.addAttribute("userForm", form);
+
+
+        return "home/userForm";
     }
 }

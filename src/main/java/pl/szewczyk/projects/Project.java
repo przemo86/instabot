@@ -46,12 +46,13 @@ public class Project implements java.io.Serializable {
     private HashtagSearchEnum hashtagSearch;
 
     @Column(name = "_like")
-    private Boolean like = false;
+    private boolean like;
 
     @Column(name = "_comment")
-    private Boolean comment = false;
+    private boolean comment;
 
     protected Project() {
+
     }
 
     public Long getId() {
@@ -86,28 +87,12 @@ public class Project implements java.io.Serializable {
         this.customer = customer;
     }
 
-    public String getInstagramAccount() {
-        return instagramAccount;
-    }
-
-    public void setInstagramAccount(String instagramAccount) {
-        this.instagramAccount = instagramAccount;
-    }
-
     public boolean isStatus() {
         return status;
     }
 
     public void setStatus(boolean status) {
         this.status = status;
-    }
-
-    public Account getOwner() {
-        return owner;
-    }
-
-    public void setOwner(Account owner) {
-        this.owner = owner;
     }
 
     public String getIncludeHashtags() {
@@ -158,20 +143,35 @@ public class Project implements java.io.Serializable {
         this.hashtagSearch = hashtagSearch;
     }
 
-    public Boolean isLike() {
+    public boolean isLike() {
         return like;
     }
 
-    public void setLike(Boolean like) {
+    public void setLike(boolean like) {
         this.like = like;
     }
 
-    public Boolean isComment() {
+    public boolean isComment() {
         return comment;
     }
 
-    public void setComment(Boolean comment) {
+    public void setComment(boolean comment) {
         this.comment = comment;
     }
-}
 
+    public String getInstagramAccount() {
+        return instagramAccount;
+    }
+
+    public void setInstagramAccount(String instagramAccount) {
+        this.instagramAccount = instagramAccount;
+    }
+
+    public Account getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Account owner) {
+        this.owner = owner;
+    }
+}

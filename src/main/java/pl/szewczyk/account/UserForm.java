@@ -100,7 +100,7 @@ public class UserForm {
     }
 
     public UserForm(){
-
+        System.out.println("CONSTRUCT");
     }
 
     public UserForm(Account account) {

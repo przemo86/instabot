@@ -43,12 +43,12 @@
                         th:text="#{navigation.home}"></span>
                 </a>
             </li>
-            <li th:classappend="${module == 'stats' ? 'active' : ''}">
-                <a href="/stats" th:href="@{/stats}">
-                    <span class="fa fa-bar-chart" aria-hidden="true">&nbsp;&nbsp;</span><span
-                        th:text="#{navigation.stats}"></span>
-                </a>
-            </li>
+            <!--<li th:classappend="${module == 'stats' ? 'active' : ''}">-->
+                <!--<a href="/stats" th:href="@{/stats}">-->
+                    <!--<span class="fa fa-bar-chart" aria-hidden="true">&nbsp;&nbsp;</span><span-->
+                        <!--th:text="#{navigation.stats}"></span>-->
+                <!--</a>-->
+            <!--</li>-->
             <li th:classappend="${module == 'projects' ? 'active' : ''}">
                 <a href="/projects" th:href="@{/projects}">
                     <span class="fa fa-files-o" aria-hidden="true">&nbsp;&nbsp;</span><span

@@ -42,7 +42,7 @@ class LikeCorrectValidator implements ConstraintValidator<LikeCorrect, Object> {
     public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
         System.out.println("valid?");
         ProjectForm projectForm = (ProjectForm) o;
-        if (projectForm.getLike()) {
+        if (projectForm.isLike()) {
             if (projectForm.getLikeFrequency() != null) {
                 return true;
             }

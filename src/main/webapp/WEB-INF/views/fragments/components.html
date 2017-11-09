@@ -4,30 +4,177 @@
     <link href="../../../resources/css/bootstrap.min.css" rel="stylesheet" media="screen"
           th:href="@{/resources/css/bootstrap.min.css}"/>
 </head>
-<body>
-<!-- Reusable alert -->
-<div th:fragment="alert (type, message)" class="alert alert-dismissable" th:classappend="'alert-' + ${type}">
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-    <span th:text="${message}">Test</span>
+<div>
+    <!-- Reusable alert -->
+    <div th:fragment="alert (type, message)" class="alert alert-dismissable" th:classappend="'alert-' + ${type}">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <span th:text="${message}">Test</span>
+    </div>
+    <!-- Reusable modal -->
+    <div th:fragment="modal (id, title)" class="modal fade" th:id="${id}" tabindex="-1" role="dialog"
+         aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="modalLabel" th:text="${title}">My modal</h4>
+                </div>
+                <div class="modal-body" th:id="${id + '-body'}"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <table class="table table-striped" th:fragment="instaUserTable">
+        <thead>
+        <tr>
+            <td th:text="#{user.instagram.profile_picture}"></td>
+            <td th:text="#{user.instagram.id}"></td>
+            <td th:text="#{user.instagram.username}"></td>
+            <td th:text="#{user.instagram.full_name}"></td>
+            <td></td>
+        </tr>
+        </thead>
+        <tr th:each="insta : ${userForm.instaUsers}">
+
+            <td style="text-align: center">
+                <img id="picture" th:src="${insta.profilePictureURL}" class="img-circle"
+                     style="width: 50px"
+                     th:alt="${profilePictureURL}"/>
+            </td>
+
+
+            <td th:text="${insta.id}"/>
+
+
+            <td th:text="${insta.instaUserName}"/>
+
+
+            <td th:text="${insta.fullName}"/>
+            <td>
+
+
+                <a href="#" data-th-href="@{/user(id=${insta.id},email=${userForm.email})}">
+        <span class="btn btn-danger remove show_tip">
+        <i class="fa fa-trash-o"></i>
+            </span>
+                </a>
+            </td>
+        </tr>
+    </table>
+
+    <div th:fragment="activityStats">
+        <table class="table project-table" id="medias">
+            <thead>
+            <tr>
+                <th>Media</th>
+                <th>Tags</th>
+                <th>Likes</th>
+                <th>Comments</th>
+                <th>User</th>
+                <th>Followed by</th>
+                <th>Like</th>
+                <th>Post comment</th>
+            </tr>
+            </thead>
+            <tr th:each="media : ${mediaList}">
+                <td><a th:href="${media.link}" target="_blank"><img style="width: 50px" th:src="${media.thumbnailUri}"
+                                                                    th:alt="${media.thumbnailUri}"/></a></td>
+                <td>
+                    <span th:each="tag : ${media.tags}" th:text="${tag}"
+                          th:class="${#lists.contains(#strings.listSplit(project.includeHashtags,','),tag)} ? 'label label-success' : 'label label-default'"
+                          style="margin-right: 1px"></span>
+                </td>
+                <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="like" th:data-id="${media.mediaId}"
+                       th:text="${media.userLikes == null} ? '0' : ${#lists.size(media.userLikes)}"></a></td>
+                <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="comment" th:data-id="${media.mediaId}"
+                       th:text="${media.comments == null} ? '0' : ${#lists.size(media.comments)}"></a></td>
+                <td><a th:href="'https://www.instagram.com/' + ${media.userName}" target="_blank"><img
+                        class="img-circle"
+                        style="width: 50px; padding-right: 10px"
+                        th:src="${media.userProfileImage}"
+                        th:alt="${media.userProfileImage}"
+                        th:text="${media.userName}"/></a>
+                </td>
+                <td th:text="${media.userFollowed}"></td>
+
+                <td><a href="#" class="like" th:data-mediaid="${media.mediaId}">Polub</a></td>
+                <td><a href="#" class="comment" th:data-mediaid="${media.mediaId}">Skomentuj</a></td>
+
+            </tr>
+        </table>
+        <script th:inline="javascript">
+            $('.like').on('click', function (e) {
+                var id = e.currentTarget.dataset['mediaid'];
+
+                $.ajax({
+                    url: "/stats/like?id=" + id,
+                    cache: false
+                }).done(function (html) {
+                    showPopup('Polubiono', 'alert-success');
+                }).fail(function (html) {
+                    showPopup('Już polubiono', 'alert-danger');
+                });
+            });
+
+            $('.comment').on('click', function (e) {
+                var id = e.currentTarget.dataset['mediaid'];
+
+                $.ajax({
+                    url: "/stats/comment?id=" + id,
+                    cache: false
+                }).done(function (html) {
+                    showPopup('Skomentowano', 'alert-success');
+                }).fail(function (html) {
+                    showPopup('Już skomentowano', 'alert-danger');
+                });
+            });
+
+            function showPopup(message, attr) {
+                $("#notification").hide();
+                $('#notification').removeClass('alert-success');
+                $('#notification').removeClass('alert-danger');
+                $('#notification').addClass(attr);
+
+                $("#notification").empty();
+                $("#notification").fadeIn("slow").append(message);
+                setTimeout('$("#notification").fadeOut("slow")', 2500);
+            }
+        </script>
+    </div>
+
+    <div th:fragment="hashtags">
+        <table class="table project-table" id="tags">
+            <thead>
+            <tr>
+                <th>Hashtag</th>
+                <th>Wystąpił</th>
+                <th>Trafień ogółem</th>
+                <th>%</th>
+            </tr>
+            </thead>
+            <tr th:each="tag : ${mediatags}">
+                <td th:text="${tag.tag}"></td>
+                <td th:text="${#numbers.formatDecimal(tag.hits, 0,0)}"></td>
+                <td th:text="${#numbers.formatDecimal(tag.total, 0,0)}"></td>
+                <td>
+
+                        <span th:text="${#numbers.formatDecimal(100*(tag.hits/tag.total), 0,2)} + ' %'"></span>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-info" role="progressbar" th:aria-valuenow="${tag.hits}"
+                             aria-valuemin="0" th:aria-valuemax="${tag.total}" th:style="'width:' + ${100*(tag.hits/tag.total)} + '%'"></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <ul th:fragment="modal-content" th:each="item : ${items}">
+        <li th:text="${item}"/>
+    </ul>
 </div>
-<!-- Reusable modal -->
-<div th:fragment="modal (id, title)" class="modal fade" th:id="${id}" tabindex="-1" role="dialog"
-     aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="modalLabel" th:text="${title}">My modal</h4>
-            </div>
-            <div class="modal-body" th:id="${id + '-body'}"></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-
 
 </body>
 </html>

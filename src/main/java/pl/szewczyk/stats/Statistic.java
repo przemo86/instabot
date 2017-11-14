@@ -1,6 +1,5 @@
 package pl.szewczyk.stats;
 
-import org.jinstagram.entity.users.feed.MediaFeedData;
 import pl.szewczyk.projects.HashtagSearchEnum;
 import pl.szewczyk.projects.Project;
 
@@ -47,7 +46,7 @@ public class Statistic implements Serializable {
     public Statistic() {
     }
 
-    public Statistic(Project project, Set<MediaFeedData> mediaFeedData) {
+    public Statistic(Project project, Set<Media> mediaFeedData) {
 
         this.time = Instant.now();
 
@@ -56,10 +55,7 @@ public class Statistic implements Serializable {
         this.includeHashtags = project.getIncludeHashtags();
         this.excludeHashtags = project.getExcludeHashtags();
         this.hashtagSearch = project.getHashtagSearch();
-        for (MediaFeedData mediaFeed : mediaFeedData) {
-            media.add(new Media(mediaFeed));
-        }
-
+        this.media = mediaFeedData;
     }
 
     public Long getId() {

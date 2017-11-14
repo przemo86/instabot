@@ -1,10 +1,8 @@
 package pl.szewczyk.projects;
 
-import org.jinstagram.Instagram;
-import org.jinstagram.auth.model.Token;
-import org.jinstagram.entity.users.feed.MediaFeed;
-import org.jinstagram.entity.users.feed.MediaFeedData;
-import org.jinstagram.exceptions.InstagramException;
+import me.postaddict.instagram.scraper.Instagram;
+import me.postaddict.instagram.scraper.domain.Media;
+import me.postaddict.instagram.scraper.exception.InstagramException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -16,6 +14,7 @@ import pl.szewczyk.stats.Statistic;
 import pl.szewczyk.stats.StatisticsRepository;
 
 import javax.persistence.EntityManager;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,6 +34,9 @@ public abstract class ProjectJob implements Job {
 
     private Project project;
 
+    @Autowired
+    private InstaConstants instaConstants;
+
     protected void init() {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
     }
@@ -46,6 +48,7 @@ public abstract class ProjectJob implements Job {
         Character kind = jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind");
         System.out.println("Project ID " + id);
 
+
         if (project == null) {
             init();
         }
@@ -53,11 +56,13 @@ public abstract class ProjectJob implements Job {
 
         InstaUser instaUser = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
 
-        Map<String, List<MediaFeedData>> tags = new HashMap<>();
+        Instagram instagram = instaConstants.getInstagramLoggedIn(instaUser.getInstaUserName());
+
+        Map<String, List<Media>> tags = new HashMap<>();
 
         for (String tag : project.getIncludeHashtags().split(",")) {
             try {
-                List<MediaFeedData> list = searchTag(tag, instaUser.getAccessToken());
+                List<Media> list = searchTag(tag);
                 if (list != null)
                     tags.put(tag, list);
             } catch (Exception e) {
@@ -69,27 +74,23 @@ public abstract class ProjectJob implements Job {
         try {
             if (HashtagSearchEnum.ANY.equals(project.getHashtagSearch())) {
                 System.out.println("ANY ");
-                List<MediaFeedData> searches = tags.entrySet().stream()
+                List<Media> searches = tags.entrySet().stream()
                         .flatMap(s -> s.getValue().stream())
                         .distinct()
                         .collect(Collectors.toList());
-                Iterator<MediaFeedData> it = searches.iterator();
+                Iterator<Media> it = searches.iterator();
                 while (it.hasNext()) {
-                    MediaFeedData mediaFeedData = it.next();
-                    System.out.println("TAGS = " + mediaFeedData.getTags());
+                    Media media = it.next();
+                    System.out.println("TAGS = " + media.getTags());
                     System.out.println("EXCLUDE " + project.getExcludeHashtags());
-                    if (Collections.disjoint(mediaFeedData.getTags(), Arrays.asList(project.getExcludeHashtags().split(",")))) {
-                        try {
-                            System.out.println("CHECKING    === " + projectRepository.countMediaId(mediaFeedData.getId(), kind, project));
-                            if (projectRepository.countMediaId(mediaFeedData.getId(), kind, project) == 0L) {
-                                System.out.println("ODPALAM ROBOTE");
-                                doJob(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
-                            } else {
-                                System.out.println("JUZ TO ROBILEM...");
-                                it.remove();
-                            }
-                        } catch (InstagramException e) {
-                            e.printStackTrace();
+                    if (Collections.disjoint(media.getTags(), Arrays.asList(project.getExcludeHashtags().split(",")))) {
+                        System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));
+                        if (projectRepository.countMediaId(media.id, kind, project) == 0L) {
+                            System.out.println("ODPALAM ROBOTE");
+                            doJob(media, project.getCommentString(), instagram);
+                        } else {
+                            System.out.println("JUZ TO ROBILEM...");
+                            it.remove();
                         }
                     } else {
                         it.remove();
@@ -97,7 +98,7 @@ public abstract class ProjectJob implements Job {
                 }
                 System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
                 try {
-                    Statistic statistic = new Statistic(project, new HashSet<>(searches));
+                    Statistic statistic = new Statistic(project, searches.stream().map(m -> new pl.szewczyk.stats.Media(m)).collect(Collectors.toSet()));
                     statistic.setKind(kind);
                     statisticsRepository.save(statistic);
                 } catch (Exception e) {
@@ -110,28 +111,28 @@ public abstract class ProjectJob implements Job {
 
             if (HashtagSearchEnum.ALL.equals(project.getHashtagSearch())) {
                 System.out.println("ALL ");
-                List<MediaFeedData> searches = tags.entrySet().stream()
+                List<Media> searches = tags.entrySet().stream()
                         .flatMap(s -> s.getValue().stream())
                         .distinct()
                         .collect(Collectors.toList());
-                Iterator<MediaFeedData> it = searches.iterator();
+                Iterator<Media> it = searches.iterator();
                 while (it.hasNext()) {
-                    MediaFeedData mediaFeedData = it.next();
-                    System.out.println("TAGS = " + mediaFeedData.getTags());
+                    Media media = it.next();
+                    System.out.println("TAGS = " + media.getTags());
                     System.out.println("EXCLUDE " + project.getExcludeHashtags());
-                    if (Collections.disjoint(mediaFeedData.getTags(), Arrays.asList(project.getExcludeHashtags().split(","))) &&
-                            mediaFeedData.getTags().containsAll(Arrays.asList(project.getIncludeHashtags().split(",")))) {
-                        try {
-                            System.out.println("CHECKING    === " + projectRepository.countMediaId(mediaFeedData.getId(), kind, project));
-                            if (projectRepository.countMediaId(mediaFeedData.getId(), kind, project) == 0L) {
-                                System.out.println("ODPALAM ROBOTE");
-                                doJob(mediaFeedData, project.getCommentString(), instaUser.getAccessToken());
-                            } else {
-                                System.out.println("JUZ TO ROBILEM...");
-                                it.remove();
+                    if (Collections.disjoint(media.getTags(), Arrays.asList(project.getExcludeHashtags().split(","))) &&
+                            media.getTags().containsAll(Arrays.asList(project.getIncludeHashtags().split(",")))) {
+                        System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));
+                        if (projectRepository.countMediaId(media.id, kind, project) == 0L) {
+                            System.out.println("ODPALAM ROBOTE");
+                            try {
+                                doJob(media, project.getCommentString(), instagram);
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
-                        } catch (InstagramException e) {
-                            e.printStackTrace();
+                        } else {
+                            System.out.println("JUZ TO ROBILEM...");
+                            it.remove();
                         }
                     } else {
                         it.remove();
@@ -139,7 +140,7 @@ public abstract class ProjectJob implements Job {
                 }
                 System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
                 try {
-                    Statistic statistic = new Statistic(project, new HashSet<>(searches));
+                    Statistic statistic = new Statistic(project, searches.stream().map(m -> new pl.szewczyk.stats.Media(m)).collect(Collectors.toSet()));
                     statistic.setKind(kind);
                     statisticsRepository.save(statistic);
                 } catch (Exception e) {
@@ -150,29 +151,28 @@ public abstract class ProjectJob implements Job {
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public List<MediaFeedData> searchTag(String tag, String authToken)  {
-        Token accessToken = new Token(authToken, InstaConstants.ClientSecret);
-        Instagram instagram = new Instagram(accessToken);
+    public List<Media> searchTag(String tag) {
+        Instagram instagram = instaConstants.getInstagramAnonymous();
 
         System.out.println("TAG SEARCH " + tag);
-        MediaFeed mediaFeed = null;
+        List<Media> mediaFeed = null;
         try {
-            mediaFeed = instagram.getRecentMediaFeedTags(tag);
+            mediaFeed = instagram.getMediasByTag(tag, 1000);
         } catch (InstagramException e) {
             System.err.println("ERRROR SEARCHING TAG " + tag + "   " + project.getName());
             System.err.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        if (mediaFeed != null)
-            return mediaFeed.getData();
-
-        return null;
+        return mediaFeed;
     }
 
 
-    abstract void doJob(MediaFeedData mediaFeedData, String comment, String authToken) throws InstagramException;
+    abstract void doJob(Media media, String comment, Instagram instagram) throws IOException;
 
 }

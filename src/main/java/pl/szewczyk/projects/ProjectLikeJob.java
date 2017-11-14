@@ -1,10 +1,9 @@
 package pl.szewczyk.projects;
 
-import org.jinstagram.Instagram;
-import org.jinstagram.auth.model.Token;
-import org.jinstagram.entity.users.feed.MediaFeedData;
-import org.jinstagram.exceptions.InstagramException;
-import pl.szewczyk.instagram.InstaConstants;
+import me.postaddict.instagram.scraper.Instagram;
+import me.postaddict.instagram.scraper.domain.Media;
+
+import java.io.IOException;
 
 /**
  * Created by przem on 20.09.2017.
@@ -13,15 +12,12 @@ import pl.szewczyk.instagram.InstaConstants;
 public class ProjectLikeJob extends ProjectJob {
 
 
-    public void like(MediaFeedData mediaFeedData, String authToken) throws InstagramException {
-        Token accessToken = new Token(authToken, InstaConstants.ClientSecret);
-        Instagram instagram = new Instagram(accessToken);
-
-        instagram.setUserLike(mediaFeedData.getId());
+    public void like(Media media, Instagram instagram) throws IOException {
+        instagram.likeMediaByCode(media.shortcode);
     }
 
     @Override
-    void doJob(MediaFeedData mediaFeedData, String comment, String authToken) throws InstagramException {
-//        like(mediaFeedData, authToken);
+    void doJob(Media media, String comment, Instagram instagram) throws IOException {
+        like(media, instagram);
     }
 }

@@ -120,7 +120,6 @@
                             <label for="role" class="col-lg-4 control-label" th:text="#{user.instagram.user}"></label>
                             <div class=" form-group col-sm-8">
                                 <button type="button" class="media-middle input-control btn btn-default" id="addInsta"
-                                        th:if="*{#lists.size(instaUsers) < 1}"
                                         th:text="#{user.instagram.user}"
                                         name="insta"></button>
                             </div>
@@ -147,26 +146,47 @@
     </div>
 </div>
 <script th:inline="javascript">
-    var url = '/adduser';
+    var url = '/listusers';
 
     $('#addInsta').on('click', function () {
-        var myWindow = window.open('https://instagram.com/accounts/logout/', '_blank', "width=100,height=100");
-        setTimeout(function () {
-            myWindow.close();
-            myWindow = window.open('https://www.instagram.com/oauth/authorize/?client_id=67a5ccf8ac4045a98906e37679caa4e2&redirect_uri=' + window.location.origin + '/userAdded' + window.location.search + '&response_type=code', '_blank', 'scrollbars=0,resizable=0,height=350,width=450');
-        }, 1000);
+        //var myWindow = window.open('/addInstaUser', '_blank', "scrollbars=0,resizable=0,height=360,width=440");
+        $("#signup-modal").modal();
+        $("#signup-modal-body").text("");
+        $(".modal-footer").hide();
 
+        $.ajax({
+            url: "/addInstaUser",
+            cache: false
+        }).done(function (html) {
+            $("#signup-modal-body").append(html);
+            $('#add').on('click', function() {
+                var token = $("meta[name='_csrf']").attr("content");
+                var header = $("meta[name='_csrf_header']").attr("content");
+                $.ajax({
+                    url: '/addnewinstauser',
+                    type: 'post',
+                    headers : {'X-CSRF-TOKEN' : $('input[name="_csrf"]').val()},
+                    data:{ username: $('#inputEmail').val(), password: $('#inputPassword').val() }
+                }).done(function (html) {
+                    console.log('success');
+                    console.log(html);
+                    $("#signup-modal").modal('toggle');
+                }).fail(function (err) {
+                    console.log('error');
+                    console.log(err);
+                });
+            });
+        });
     });
 
     window.addEventListener('message', receiveMessage, false);
     function receiveMessage(event) {
         $("#resultsBlock").load(url);
-        $('#userAdding').hide();
     }
 
 
     $("#resultsBlock").load(url);
 </script>
-<div th:replace="fragments/components :: modal(id='signup-modal', title='Signup')"></div>
+<div th:replace="fragments/components :: modal(id='signup-modal', title='Signup to instagram')"></div>
 </body>
 </html>

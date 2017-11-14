@@ -2,6 +2,7 @@ package pl.szewczyk.instagram;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import java.io.Serializable;
 
@@ -16,6 +17,9 @@ public class InstaUser implements Serializable {
     private Long id;
 
     private String instaUserName;
+
+    @Lob
+    private byte[] password;
 
     private String accessToken;
 
@@ -91,6 +95,14 @@ public class InstaUser implements Serializable {
 
     public void setBusiness(boolean business) {
         this.business = business;
+    }
+
+    public byte[] getPassword() {
+        return password;
+    }
+
+    public void setPassword(byte[] password) {
+        this.password = password;
     }
 
     @Override

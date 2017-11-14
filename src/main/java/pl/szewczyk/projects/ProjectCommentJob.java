@@ -1,24 +1,22 @@
 package pl.szewczyk.projects;
 
-import org.jinstagram.Instagram;
-import org.jinstagram.auth.model.Token;
-import org.jinstagram.entity.users.feed.MediaFeedData;
-import org.jinstagram.exceptions.InstagramException;
-import pl.szewczyk.instagram.InstaConstants;
+import me.postaddict.instagram.scraper.Instagram;
+import me.postaddict.instagram.scraper.domain.Media;
+
+import java.io.IOException;
 
 /**
  * Created by przem on 20.09.2017.
  */
 
 public class ProjectCommentJob extends ProjectJob {
-    public void comment(MediaFeedData mediaFeedData, String comment, String authToken) throws InstagramException {
-        Token accessToken = new Token(authToken, InstaConstants.ClientSecret);
-        Instagram instagram = new Instagram(accessToken);
-        instagram.setMediaComments(mediaFeedData.getId(), comment);
+    public void comment(Media mediaFeedData, String comment, Instagram instagram) throws IOException {
+
+        instagram.addMediaComment(mediaFeedData.shortcode, comment);
     }
 
     @Override
-    void doJob(MediaFeedData mediaFeedData, String comment, String authToken) throws InstagramException {
-//        comment(mediaFeedData, comment, authToken);
+    void doJob(Media mediaFeedData, String comment, Instagram instagram) throws IOException {
+        comment(mediaFeedData, comment, instagram);
     }
 }

@@ -74,6 +74,9 @@ public class ProjectsController {
         model.addAttribute(projectForm);
         model.addAttribute("enumValues", HashtagSearchEnum.values());
 
+        System.out.println(((User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername());
+
+
         model.addAttribute("instagramAccounts", em.createQuery("select iu from Account a join a.instaUsers iu where a.email = :email", InstaUser.class)
                 .setParameter("email", ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername()).getResultList());
 

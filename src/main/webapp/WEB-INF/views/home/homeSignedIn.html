@@ -68,6 +68,17 @@
             </tr>
         </table>
         </div>
+
+        <table>
+            <tr th:each="m : ${media}">
+                <td><a th:href="${m.link}">show </a> </td>
+                <td><img th:src="${m.imageUrls.low}" alt=""/> </td>
+                <td>
+                    <a th:href="@{/like(id=${m.shortcode})}">like</a>
+                </td>
+            </tr>
+        </table>
+
     </div>
 
 </div>

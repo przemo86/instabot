@@ -19,8 +19,6 @@ import pl.szewczyk.projects.ProjectService;
 
 import javax.persistence.EntityManager;
 import java.security.Principal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -45,21 +43,20 @@ class DashboardController {
     @Autowired
     private EntityManager em;
 
+
+
     @GetMapping("/")
     String index(Principal principal, Model model) {
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         List<DashboardPOJO> dashboardPOJOS = new ArrayList<>();
         Account account = em.createQuery("select a from Account a where a.email = :email", Account.class)
                 .setParameter("email", principal.getName()).getSingleResult();
         List<Project> projects = projectService.listUserProjects(account);
-        System.out.println("PROJ SIZE " + projects.size());
         for (Project project : projects) {
             try {
                 DashboardPOJO pojo = new DashboardPOJO();
                 pojo.setProjectId(project.getId());
                 pojo.setProjectName(project.getName());
                 pojo.setCustomerName(project.getCustomer());
-                System.out.println("1");
                 Pair<JobDetail, Trigger> pair = projectScheduleRunner.getJobLike(project);
                 if (null != pair) {
                     if ((pair.getLeft() != null) && (pair.getRight() != null)) {
@@ -68,9 +65,6 @@ class DashboardController {
                         pojo.setLikeHits(projectRepository.count('L', project));
                     }
                 }
-
-
-                System.out.println("2");
 
                 pair = projectScheduleRunner.getJobComment(project);
 
@@ -89,9 +83,9 @@ class DashboardController {
             }
         }
         model.addAttribute("jobs", dashboardPOJOS);
-
         return principal != null ? "home/homeSignedIn" : "home/homeNotSignedIn";
     }
+
 
     @PostMapping("/kill")
     public String killProject(@RequestParam Long id, Principal principal) {

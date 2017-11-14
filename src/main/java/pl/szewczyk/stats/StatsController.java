@@ -1,13 +1,6 @@
 package pl.szewczyk.stats;
 
-import org.jinstagram.Instagram;
-import org.jinstagram.InstagramConfig;
-import org.jinstagram.auth.model.Token;
-import org.jinstagram.entity.comments.MediaCommentsFeed;
-import org.jinstagram.entity.likes.LikesFeed;
-import org.jinstagram.entity.media.MediaInfoFeed;
-import org.jinstagram.entity.users.basicinfo.UserInfo;
-import org.jinstagram.exceptions.InstagramException;
+import me.postaddict.instagram.scraper.exception.InstagramException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +13,7 @@ import pl.szewczyk.projects.ProjectRepository;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +38,9 @@ public class StatsController {
 
     @Autowired
     private EntityManager em;
+
+    @Autowired
+    private InstaConstants instaConstants;
 
     @GetMapping("stats")
     public String listProjects(Model model, @RequestParam(name = "id") Long projectId, HttpServletRequest request) {
@@ -75,15 +72,6 @@ public class StatsController {
 
     @GetMapping("activity")
     public String getActivity(Model model, @RequestParam("id") Long id, HttpServletRequest request) {
-        String authToken = em.createNativeQuery("SELECT accesstoken FROM instabot.instauser ORDER BY RANDOM() LIMIT 1").getSingleResult().toString();
-        Token accessToken = new Token(authToken, InstaConstants.ClientSecret);
-        InstagramConfig config = new InstagramConfig();
-        config.setRetryOnServerError(true);
-        config.setConnectionKeepAlive(true);
-        Instagram instagram = new Instagram(accessToken, config);
-
-        request.getSession(false).setAttribute("instagram", instagram);
-
 //        List<Media> medias = em.createNativeQuery("select m.* from instabot.media m join instabot.statistics_media sm on m.id = sm.media_id join instabot.statistics s on sm.statistic_id = s.id limit 5", Media.class)
         List<Media> medias = em.createNativeQuery("select m.* from instabot.media m join instabot.statistics_media sm on m.id = sm.media_id where sm.statistic_id = :id", Media.class)
                 .setParameter("id", id)
@@ -92,30 +80,23 @@ public class StatsController {
         for (Media media : medias) {
             Thread thread = new Thread(() -> {
                 try {
-                    MediaInfoFeed data = instagram.getMediaInfo(media.getMediaId());
-                    UserInfo userInfo = instagram.getUserInfo(data.getData().getUser().getId());
-                    MediaCommentsFeed commentsFeed = instagram.getMediaComments(media.getMediaId());
-                    LikesFeed likesFeed = instagram.getUserLikes(media.getMediaId());
+                    me.postaddict.instagram.scraper.domain.Media data = instaConstants.getInstagramAnonymous().getMediaByCode(
+                            me.postaddict.instagram.scraper.domain.Media.getCodeFromId(media.getMediaId()));
+                    me.postaddict.instagram.scraper.domain.Account account = data.owner;
 
-                    media.setUserName(data.getData().getUser().getUserName());
-                    media.setUserProfileImage(data.getData().getUser().getProfilePictureUrl());
-                    media.setLocation(data.getData().getLocation());
-                    if (commentsFeed.getCommentDataList() != null) {
-                        media.setComments(commentsFeed.getCommentDataList().stream().map(c -> c.getText()).collect(Collectors.toList()));
-                    } else {
-                        media.setComments(new ArrayList<>());
-                    }
-                    if (likesFeed.getUserList() != null) {
-                        media.setUserLikes(likesFeed.getUserList().stream().map(u -> u.getUserName()).collect(Collectors.toList()));
-                    } else {
-                        media.setUserLikes(new ArrayList<>());
-                    }
+                    media.setUserLikes(data.likesCount);
 
-                    media.setUserFollowed(userInfo.getData().getCounts().getFollowedBy());
+                    media.setUserName(data.owner.username);
+
+                    media.setUserProfileImage(data.owner.profilePicUrl);
+                    media.setComments(data.previewCommentsList);
+                    media.setUserFollowed(data.owner.followedByCount);
 
                 } catch (InstagramException e) {
                     e.printStackTrace();
                     return;
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             });
             thread.start();
@@ -166,22 +147,21 @@ public class StatsController {
     @GetMapping("/stats/media")
     public String getModalContent(Model model, @RequestParam("type") String type, @RequestParam("id") String id, HttpServletRequest request) {
         System.out.println("asadasdasd");
-        Instagram instagram = (Instagram) request.getSession(false).getAttribute("instagram");
 
         try {
-            MediaInfoFeed data = null;
-            data = instagram.getMediaInfo(id);
-            System.out.println(data);
             List<String> items = null;
             if (type.equals("like")) {
 
-                items = instagram.getUserLikes(id).getUserList().stream().map(u -> u.getUserName()).collect(Collectors.toList());
+//                items = instaConstants.getInstagramAnonymous().getMediaByCode(me.postaddict.instagram.scraper.domain.Media.getCodeFromId(id)).
 
             } else if (type.equals("comment")) {
-                items = instagram.getMediaComments(id).getCommentDataList().stream().map(c -> c.getCommentFrom().getUsername() + " - " + c.getText()).collect(Collectors.toList());
+
+                items = instaConstants.getInstagramAnonymous().getCommentsByMediaCode(me.postaddict.instagram.scraper.domain.Media.getCodeFromId(id), 999).stream().map(c -> c.user.username + " - " + c.text).collect(Collectors.toList());
             }
             model.addAttribute("items", items);
         } catch (InstagramException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return "fragments/components :: modal-content";

@@ -25,6 +25,9 @@
     <script src="../../../resources/js/moment.min.js" th:src="@{/resources/js/moment.min.js}"></script>
     <script src="../../../resources/js/Chart.min.js" th:src="@{/resources/js/Chart.min.js}"></script>
     <script src="../../../resources/js/Chart.bundle.min.js" th:src="@{/resources/js/Chart.bundle.min.js}"></script>
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 

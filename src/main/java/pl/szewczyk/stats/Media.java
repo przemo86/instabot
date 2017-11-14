@@ -1,8 +1,7 @@
 package pl.szewczyk.stats;
 
 import com.google.gson.annotations.Expose;
-import org.jinstagram.entity.common.Location;
-import org.jinstagram.entity.users.feed.MediaFeedData;
+import me.postaddict.instagram.scraper.domain.Comment;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -55,23 +54,19 @@ public class Media implements Serializable {
 
     @Transient
     @Expose
-    private List<String> userLikes;
+    private Integer userLikes;
 
     @Transient
     @Expose
-    private List<String> comments;
-
-    @Transient
-    @Expose
-    private Location location;
+    private List<Comment> comments;
 
     public Media() {
     }
 
-    public Media(MediaFeedData mediaFeedData) {
-        this.link = mediaFeedData.getLink();
-        this.mediaId = mediaFeedData.getId();
-        this.thumbnailUri = mediaFeedData.getImages().getThumbnail().getImageUrl();
+    public Media(me.postaddict.instagram.scraper.domain.Media mediaFeedData) {
+        this.link = mediaFeedData.link;
+        this.mediaId = mediaFeedData.id;
+        this.thumbnailUri = mediaFeedData.imageUrls.thumbnail;
         this.tags = new HashSet<>(mediaFeedData.getTags());
     }
 
@@ -148,27 +143,19 @@ public class Media implements Serializable {
         this.userFollowed = userFollowed;
     }
 
-    public List<String> getUserLikes() {
+    public Integer getUserLikes() {
         return userLikes;
     }
 
-    public void setUserLikes(List<String> userLikes) {
+    public void setUserLikes(Integer userLikes) {
         this.userLikes = userLikes;
     }
 
-    public List<String> getComments() {
+    public List<Comment> getComments() {
         return comments;
     }
 
-    public void setComments(List<String> comments) {
+    public void setComments(List<Comment> comments) {
         this.comments = comments;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
     }
 }

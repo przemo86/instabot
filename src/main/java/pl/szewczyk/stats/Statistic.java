@@ -40,7 +40,7 @@ public class Statistic implements Serializable {
 
     private Character kind;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "statistic", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name="id", referencedColumnName = "stat_id")
     private Set<Media> media = new HashSet<>();
 

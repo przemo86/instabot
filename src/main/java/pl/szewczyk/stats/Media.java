@@ -21,6 +21,7 @@ public class Media implements Serializable {
     private Long id;
 
     @Expose
+    @Column(name = "stat_id")
     private Statistic statistic;
 
     private String mediaId;

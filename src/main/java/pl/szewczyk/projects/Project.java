@@ -96,7 +96,9 @@ public class Project implements java.io.Serializable {
     }
 
     public String getIncludeHashtags() {
-        return includeHashtags;
+        if (includeHashtags != null)
+            return includeHashtags.replaceAll(" ", "");
+        return null;
     }
 
     public void setIncludeHashtags(String includeHashtags) {
@@ -104,7 +106,9 @@ public class Project implements java.io.Serializable {
     }
 
     public String getExcludeHashtags() {
-        return excludeHashtags;
+        if (excludeHashtags != null)
+            return excludeHashtags.replaceAll(" ", "");
+        return null;
     }
 
     public void setExcludeHashtags(String excludeHashtags) {

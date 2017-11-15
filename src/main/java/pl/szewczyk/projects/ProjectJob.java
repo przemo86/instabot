@@ -34,11 +34,13 @@ public abstract class ProjectJob implements Job {
 
     private Project project;
 
-    @Autowired
-    private InstaConstants instaConstants;
+    private InstaConstants instaConstants = new InstaConstants();
 
     protected void init() {
+        System.out.println("INIT " + instaConstants);
+
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+        System.out.println("AFTER INIT " + instaConstants);
     }
 
 
@@ -48,19 +50,26 @@ public abstract class ProjectJob implements Job {
         Character kind = jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind");
         System.out.println("Project ID " + id);
 
-
+        System.out.println("xxx " + project);
         if (project == null) {
             init();
         }
+        System.out.println("FIND ME ");
         project = projectRepository.znajdz(id);
 
+        System.out.println("1  " + project);
+
         InstaUser instaUser = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
+        System.out.println("2");
 
         Instagram instagram = instaConstants.getInstagramLoggedIn(instaUser.getInstaUserName());
+        System.out.println("3");
 
         Map<String, List<Media>> tags = new HashMap<>();
+        System.out.println("4");
 
         for (String tag : project.getIncludeHashtags().split(",")) {
+            System.out.println("5 " + tag);
             try {
                 List<Media> list = searchTag(tag);
                 if (list != null)
@@ -83,7 +92,7 @@ public abstract class ProjectJob implements Job {
                     Media media = it.next();
                     System.out.println("TAGS = " + media.getTags());
                     System.out.println("EXCLUDE " + project.getExcludeHashtags());
-                    if (Collections.disjoint(media.getTags(), Arrays.asList(project.getExcludeHashtags().split(",")))) {
+                    if (Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(",")))) {
                         System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));
                         if (projectRepository.countMediaId(media.id, kind, project) == 0L) {
                             System.out.println("ODPALAM ROBOTE");
@@ -99,6 +108,7 @@ public abstract class ProjectJob implements Job {
                 System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
                 try {
                     Statistic statistic = new Statistic(project, searches.stream().map(m -> new pl.szewczyk.stats.Media(m)).collect(Collectors.toSet()));
+                    statistic.getMedia().stream().forEach(m -> m.setStatistic(statistic));
                     statistic.setKind(kind);
                     statisticsRepository.save(statistic);
                 } catch (Exception e) {
@@ -118,10 +128,12 @@ public abstract class ProjectJob implements Job {
                 Iterator<Media> it = searches.iterator();
                 while (it.hasNext()) {
                     Media media = it.next();
-                    System.out.println("TAGS = " + media.getTags());
-                    System.out.println("EXCLUDE " + project.getExcludeHashtags());
-                    if (Collections.disjoint(media.getTags(), Arrays.asList(project.getExcludeHashtags().split(","))) &&
-                            media.getTags().containsAll(Arrays.asList(project.getIncludeHashtags().split(",")))) {
+                    System.out.println(media.shortcode + " TAGS = " + media.getTags());
+                    System.out.println("SEARCH FOR ALL " + project.getIncludeHashtags());
+                    System.out.println("DISJOINT " + Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(","))));
+                    System.out.println("CONTAINSALL " + media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()).containsAll(Arrays.asList(project.getIncludeHashtags().toLowerCase().split(","))));
+                    if (Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(","))) &&
+                            media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()).containsAll(Arrays.asList(project.getIncludeHashtags().toLowerCase().split(",")))) {
                         System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));
                         if (projectRepository.countMediaId(media.id, kind, project) == 0L) {
                             System.out.println("ODPALAM ROBOTE");
@@ -140,7 +152,8 @@ public abstract class ProjectJob implements Job {
                 }
                 System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
                 try {
-                    Statistic statistic = new Statistic(project, searches.stream().map(m -> new pl.szewczyk.stats.Media(m)).collect(Collectors.toSet()));
+                    Statistic statistic = new Statistic(project, searches.stream().map(m -> new pl.szewczyk.stats.Media(m)).distinct().collect(Collectors.toSet()));
+                    statistic.getMedia().stream().forEach(m -> m.setStatistic(statistic));
                     statistic.setKind(kind);
                     statisticsRepository.save(statistic);
                 } catch (Exception e) {
@@ -163,10 +176,14 @@ public abstract class ProjectJob implements Job {
         List<Media> mediaFeed = null;
         try {
             mediaFeed = instagram.getMediasByTag(tag, 1000);
+            System.out.println("FOUND " + mediaFeed.size());
         } catch (InstagramException e) {
             System.err.println("ERRROR SEARCHING TAG " + tag + "   " + project.getName());
             System.err.println(e.getMessage());
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("XXXXXXXXXXX exce");
             e.printStackTrace();
         }
         return mediaFeed;

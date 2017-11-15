@@ -147,7 +147,13 @@
 </div>
 <script th:inline="javascript">
     var url = '/listusers';
-
+$('#addnewinstauser').on('submit', function (e) {
+    console.log('submiting ');
+    console.log(e);
+    e.preventDefault();
+    submitForm();
+    return false;
+});
     $('#addInsta').on('click', function () {
         //var myWindow = window.open('/addInstaUser', '_blank', "scrollbars=0,resizable=0,height=360,width=440");
         $("#signup-modal").modal();
@@ -162,23 +168,30 @@
             $('#add').on('click', function() {
                 var token = $("meta[name='_csrf']").attr("content");
                 var header = $("meta[name='_csrf_header']").attr("content");
-                $.ajax({
-                    url: '/addnewinstauser',
-                    type: 'post',
-                    headers : {'X-CSRF-TOKEN' : $('input[name="_csrf"]').val()},
-                    data:{ username: $('#inputEmail').val(), password: $('#inputPassword').val() }
-                }).done(function (html) {
-                    console.log('success');
-                    console.log(html);
-                    $("#signup-modal").modal('toggle');
-                }).fail(function (err) {
-                    console.log('error');
-                    console.log(err);
-                });
+                submitForm();
             });
         });
     });
 
+    submitForm = function () {
+        $.ajax({
+            url: '/addnewinstauser',
+            type: 'post',
+            headers : {'X-CSRF-TOKEN' : $('input[name="_csrf"]').val()},
+            data:{ username: $('#inputEmail').val(), password: $('#inputPassword').val() }
+        }).done(function (html) {
+            console.log('success');
+            console.log(html);
+            $("#resultsBlock").html(html);
+            $("#signup-modal").modal('toggle');
+        }).fail(function (err) {
+            console.log('===========================');
+            console.log(err);
+            $('#errors').fadeIn("slow");
+            setTimeout('$("#errors").fadeOut("slow")', 2500);
+            $('#errors').html(err.responseText);
+        });
+    };
     window.addEventListener('message', receiveMessage, false);
     function receiveMessage(event) {
         $("#resultsBlock").load(url);

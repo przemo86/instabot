@@ -306,7 +306,7 @@ public class Media {
     }
 
     public List<String> getTags() {
-        Pattern MY_PATTERN = Pattern.compile("#(\\S+)");
+        Pattern MY_PATTERN = Pattern.compile("#([^\\r\\n\\t\\f\\v# ]+)");
         Matcher mat = MY_PATTERN.matcher(caption);
         List<String> strs = new ArrayList<String>();
         while (mat.find()) {

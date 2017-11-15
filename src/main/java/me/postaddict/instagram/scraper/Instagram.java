@@ -27,7 +27,6 @@ public class Instagram implements AuthenticatedInsta {
     private Request withCsrfToken(Request request) {
         List<Cookie> cookies = httpClient.cookieJar()
                 .loadForRequest(request.url());
-        System.out.println("CSRF");
         for (Iterator<Cookie> iterator = cookies.iterator(); iterator.hasNext(); ) {
             Cookie cookie = iterator.next();
             if (!cookie.name().equals("csrftoken")) {
@@ -52,7 +51,16 @@ public class Instagram implements AuthenticatedInsta {
         response.body().close();
     }
 
-    public void login(String username, String password) throws IOException {
+    public void logout() throws IOException {
+        Request request = new Request.Builder()
+                .url(Endpoint.LOGOUT_URL)
+                .build();
+
+        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        response.body().close();
+    }
+
+    public void login1(String username, String password) throws IOException, IllegalAccessException {
         if (username == null || password == null) {
             throw new InstagramAuthException("Specify username and password");
         }
@@ -69,10 +77,52 @@ public class Instagram implements AuthenticatedInsta {
                 .build();
 
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
-        System.out.println("########################");
-        System.out.println(response.body().string());
-        System.out.println("########################");
         response.body().close();
+
+//        if (response.code() != 200)
+//            login1(username,password);
+    }
+
+    public Account login(String username, String password) throws IOException, IllegalAccessException {
+        if (username == null || password == null) {
+            throw new InstagramAuthException("Specify username and password");
+        }
+        System.out.println("LOGIN " + username + " " + password);
+        RequestBody formBody = new FormBody.Builder()
+                .add("username", username)
+                .add("password", password)
+                .build();
+
+        Request request = new Request.Builder()
+                .url(Endpoint.LOGIN_URL)
+                .header("Referer", Endpoint.BASE_URL + "/")
+                .post(formBody)
+                .build();
+
+        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        System.out.println("AUTH " + response.body().string().substring(0, 10));
+        if (!((Boolean) gson.fromJson(response.body().string(), Map.class).get("authenticated"))) {
+            throw new IllegalAccessException("Niepoprawne dane logowania");
+        }
+        response.body().close();
+
+        request = new Request.Builder()
+                .url(Endpoint.USER_SELF_URL)
+                .header("Referer", Endpoint.LOGIN_URL)
+                .get()
+                .build();
+
+        response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        String jsonString = response.body().string();
+
+        response.body().close();
+
+        System.out.println(jsonString);
+        String user = (String) ((Map) gson.fromJson(jsonString, Map.class).get("form_data")).get("username");
+
+        Account acc = getAccountByUsername(user);
+        return acc;
+
     }
 
     public Account getAccountById(long id) throws IOException {
@@ -98,7 +148,6 @@ public class Instagram implements AuthenticatedInsta {
         Response response = this.httpClient.newCall(request).execute();
         String jsonString = response.body().string();
         response.body().close();
-
         Map userJson = gson.fromJson(jsonString, Map.class);
         return Account.fromAccountPage((Map) userJson.get("user"));
     }
@@ -207,30 +256,34 @@ public class Instagram implements AuthenticatedInsta {
         String maxId = "";
         boolean hasNext = true;
 
-        while (index < count && hasNext) {
-            Request request = new Request.Builder()
-                    .url(Endpoint.getMediasJsonByTagLink(tag, maxId))
-                    .header("Referer", Endpoint.BASE_URL + "/")
-                    .build();
+//        while (index < count && hasNext) {
+        Request request = new Request.Builder()
+                .url(Endpoint.getMediasJsonByTagLink(tag.trim(), maxId))
+                .header("Referer", Endpoint.BASE_URL + "/")
+                .build();
 
-            Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
-            String jsonString = response.body().string();
-            response.body().close();
+        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        String jsonString = response.body().string();
+        response.body().close();
+        System.out.println(request.url().encodedPath() + " " + response.code());
 
-            Map tagMap = gson.fromJson(jsonString, Map.class);
-            List nodes = (List) ((Map) ((Map) tagMap.get("tag")).get("media")).get("nodes");
-            for (Object node : nodes) {
-                if (index == count) {
-                    return medias;
-                }
-                index++;
-                Map mediaMap = (Map) node;
-                Media media = Media.fromTagPage(mediaMap);
-                medias.add(media);
+        if (response.code() != 200)
+            return getMediasByTag(tag, count);
+
+        Map tagMap = gson.fromJson(jsonString, Map.class);
+        List nodes = (List) ((Map) ((Map) tagMap.get("tag")).get("media")).get("nodes");
+        for (Object node : nodes) {
+            if (index == count) {
+                return medias;
             }
-            hasNext = (Boolean) ((Map) ((Map) ((Map) tagMap.get("tag")).get("media")).get("page_info")).get("has_next_page");
-            maxId = (String) ((Map) ((Map) ((Map) tagMap.get("tag")).get("media")).get("page_info")).get("end_cursor");
+            index++;
+            Map mediaMap = (Map) node;
+            Media media = Media.fromTagPage(mediaMap);
+            medias.add(media);
         }
+//            hasNext = (Boolean) ((Map) ((Map) ((Map) tagMap.get("tag")).get("media")).get("page_info")).get("has_next_page");
+//            maxId = (String) ((Map) ((Map) ((Map) tagMap.get("tag")).get("media")).get("page_info")).get("end_cursor");
+//        }
         return medias;
     }
 
@@ -291,20 +344,17 @@ public class Instagram implements AuthenticatedInsta {
     }
 
     public void likeMediaByCode(String code) throws IOException {
-        String url = Endpoint.getMediaLikeLink(Media.getIdFromCode(code));
-        System.out.println("URL = " + url);
+        String url = Endpoint.getMediaLikeLink(code);
+        System.out.println("LIKE MEDIA URL = " + url);
         Request request = new Request.Builder()
                 .url(url)
                 .header("Referer", Endpoint.getMediaPageLinkByCode(code) + "/")
                 .post(new FormBody.Builder().build())
                 .build();
-        System.out.println("HEADERS");
-        request = withCsrfToken(request);
-        Request finalRequest = request;
-        request.headers().names().stream().forEach(s -> System.out.println(s + " = " + finalRequest.header(s)));
 
-        Response response = this.httpClient.newCall(request).execute();
-        System.out.println("LIKE " + response.code() + '\n' + response.body().string());
+
+        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        System.out.println("LIKE " + response.code());
         response.body().close();
     }
 
@@ -402,7 +452,7 @@ public class Instagram implements AuthenticatedInsta {
     }
 
     public Comment addMediaComment(String code, String commentText) throws IOException {
-        String url = Endpoint.addMediaCommentLink(Media.getIdFromCode(code));
+        String url = Endpoint.addMediaCommentLink(code);
         FormBody formBody = new FormBody.Builder()
                 .add("comment_text", commentText)
                 .build();

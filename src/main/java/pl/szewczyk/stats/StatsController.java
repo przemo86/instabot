@@ -39,8 +39,7 @@ public class StatsController {
     @Autowired
     private EntityManager em;
 
-    @Autowired
-    private InstaConstants instaConstants;
+    private InstaConstants instaConstants = new InstaConstants();
 
     @GetMapping("stats")
     public String listProjects(Model model, @RequestParam(name = "id") Long projectId, HttpServletRequest request) {
@@ -50,14 +49,8 @@ public class StatsController {
         model.addAttribute("project", project);
         request.getSession(false).setAttribute("project", project);
         List<Object[]> ret = em.createNativeQuery("select * from (select s.time, count(m.mediaid), s.id, s.kind from instabot.statistics s " +
-                "   left outer join instabot.statistics_media sm on s.id = sm.statistic_id " +
-                "   left outer join instabot.media m on sm.media_id = m.id where s.projectid = :project" +
+                "   left outer join instabot.media m on s.id = m.stat_id where s.projectid = :project" +
                 "   group by s.time, s.id order by s.time) t ").setParameter("project", projectId).getResultList();
-//        List<Object[]> ret = em.createNativeQuery("select * from (select s.time, (case when s.kind = 'L' then trunc(abs(cos(radians(EXTRACT('minute' from s.time)*6))+1)*3) else " +
-//                "   trunc(abs(cos(radians(EXTRACT('minute' from s.time)*7))+2)*2) end), s.id, s.kind from instabot.statistics s " +
-//                "   left outer join instabot.statistics_media sm on s.id = sm.statistic_id " +
-//                "   left outer join instabot.media m on sm.media_id = m.id where s.projectid = :project" +
-//                "   group by s.time,s.id order by s.time) t limit 100").setParameter("project", projectId).getResultList();
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -72,8 +65,7 @@ public class StatsController {
 
     @GetMapping("activity")
     public String getActivity(Model model, @RequestParam("id") Long id, HttpServletRequest request) {
-//        List<Media> medias = em.createNativeQuery("select m.* from instabot.media m join instabot.statistics_media sm on m.id = sm.media_id join instabot.statistics s on sm.statistic_id = s.id limit 5", Media.class)
-        List<Media> medias = em.createNativeQuery("select m.* from instabot.media m join instabot.statistics_media sm on m.id = sm.media_id where sm.statistic_id = :id", Media.class)
+        List<Media> medias = em.createNativeQuery("select m.* from instabot.media m where m.stat_id = :id", Media.class)
                 .setParameter("id", id)
                 .getResultList();
         Set<Thread> threads = new HashSet<>(medias.size());
@@ -82,15 +74,15 @@ public class StatsController {
                 try {
                     me.postaddict.instagram.scraper.domain.Media data = instaConstants.getInstagramAnonymous().getMediaByCode(
                             me.postaddict.instagram.scraper.domain.Media.getCodeFromId(media.getMediaId()));
-                    me.postaddict.instagram.scraper.domain.Account account = data.owner;
-
+                    System.out.println(" data.likesCount " + data.likesCount);
+                    System.out.println(" data.commentsCount " + data.commentsCount);
                     media.setUserLikes(data.likesCount);
 
                     media.setUserName(data.owner.username);
 
                     media.setUserProfileImage(data.owner.profilePicUrl);
-                    media.setComments(data.previewCommentsList);
-                    media.setUserFollowed(data.owner.followedByCount);
+                    media.setCommentsCount(data.commentsCount);
+                    media.setUserFollowed(instaConstants.getInstagramAnonymous().getAccountByUsername(data.owner.username).followsCount);
 
                 } catch (InstagramException e) {
                     e.printStackTrace();
@@ -119,16 +111,11 @@ public class StatsController {
     @GetMapping("activity/tags")
     public String getTags(Model model, HttpServletRequest request) {
         Project project = (Project) request.getSession(false).getAttribute("project");
-        List<Object[]> ret = em.createNativeQuery("select tags, count(DISTINCT m.mediaid) mcnt, " +
-                "  (select count(DISTINCT media.mediaid) from instabot.media join instabot.statistics_media on media.id = statistics_media.media_id JOIN instabot.statistics ON statistics_media.statistic_id = statistics.id where projectid = :projectid) acnt" +
-                "  from " +
-                "    instabot.tags t join " +
-                "    instabot.media m on t.media_id = m.id join " +
-                "    instabot.statistics_media sm on m.id = sm.media_id join " +
-                "    instabot.statistics s on sm.statistic_id = s.id " +
-                "where s.projectid = :projectid " +
-                "group by tags " +
-                "order by 2 desc").setParameter("projectid", project.getId()).getResultList();
+        List<Object[]> ret = em.createNativeQuery("select distinct x.tags, count(DISTINCT x.mediaid) mcnt, " +
+                "  (select count(DISTINCT m.mediaid) from instabot.media m JOIN instabot.statistics s ON m.stat_id = s.id where projectid = :projectid) acnt " +
+                "from (select unnest(string_to_array(m.tags, ',')) tags, m.mediaid, m.id from instabot.media m) x " +
+                "group by x.tags " +
+                "order by mcnt desc").setParameter("projectid", project.getId()).getResultList();
 
         List<Stat> stats = new ArrayList<>();
         for (Object[] o : ret) {

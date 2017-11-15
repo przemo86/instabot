@@ -40,7 +40,8 @@ public class Statistic implements Serializable {
 
     private Character kind;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Media.class, orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "statistic", cascade = CascadeType.ALL)
+    @JoinColumn(name="id", referencedColumnName = "stat_id")
     private Set<Media> media = new HashSet<>();
 
     public Statistic() {
@@ -55,7 +56,7 @@ public class Statistic implements Serializable {
         this.includeHashtags = project.getIncludeHashtags();
         this.excludeHashtags = project.getExcludeHashtags();
         this.hashtagSearch = project.getHashtagSearch();
-        this.media = mediaFeedData;
+        this.media = new HashSet<>(mediaFeedData);
     }
 
     public Long getId() {
@@ -128,5 +129,20 @@ public class Statistic implements Serializable {
 
     public void setMedia(Set<Media> media) {
         this.media = media;
+    }
+
+    @Override
+    public String toString() {
+        return "Statistic{" +
+                "id=" + id +
+                ", project=" + project +
+                ", time=" + time +
+                ", includeHashtags='" + includeHashtags + '\'' +
+                ", excludeHashtags='" + excludeHashtags + '\'' +
+                ", commentString='" + commentString + '\'' +
+                ", hashtagSearch=" + hashtagSearch +
+                ", kind=" + kind +
+                ", media=" + media +
+                '}';
     }
 }

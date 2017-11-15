@@ -1,9 +1,6 @@
 package pl.szewczyk.instagram;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 
 /**
@@ -14,11 +11,12 @@ import java.io.Serializable;
 public class InstaUser implements Serializable {
 
     @Id
+    @SequenceGenerator(name="user_seq", sequenceName="user_seq", allocationSize=1, schema = "instabot")
     private Long id;
 
     private String instaUserName;
 
-    @Lob
+    @Column(name = "passwd")
     private byte[] password;
 
     private String accessToken;

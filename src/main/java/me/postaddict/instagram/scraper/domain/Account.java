@@ -19,15 +19,36 @@ public class Account {
     public static Account fromAccountPage(Map userJson) {
         Account instance = new Account();
         instance.username = (String) userJson.get("username");
+        System.out.println(instance.username);
         instance.followsCount = ((Double) (((Map) (userJson.get("follows"))).get("count"))).intValue();
+        System.out.println(instance.followsCount);
         instance.followedByCount = ((Double) (((Map) (userJson.get("followed_by"))).get("count"))).intValue();
+        System.out.println(instance.followedByCount);
         instance.profilePicUrl = (String) userJson.get("profile_pic_url");
+        System.out.println(instance.profilePicUrl);
         instance.id = Long.parseLong((String) userJson.get("id"));
+        System.out.println(instance.id);
         instance.biography = (String) userJson.get("biography");
         instance.fullName = (String) userJson.get("full_name");
         instance.mediaCount = ((Double) (((Map) (userJson.get("media"))).get("count"))).intValue();
         instance.isPrivate = (Boolean) userJson.get("is_private");
         instance.externalUrl = (String) userJson.get("external_url");
+        instance.isVerified = (Boolean) userJson.get("is_verified");
+        return instance;
+    }
+
+    public static Account fromLogin(Map userJson) {
+        Account instance = new Account();
+        instance.username = (String) userJson.get("username");
+        instance.fullName = (userJson.get("first_name") + " " +  userJson.get("last_name")).trim();
+        instance.externalUrl = (String) userJson.get("external_url");
+        instance.biography = (String) userJson.get("biography");
+
+        instance.followedByCount = ((Double) (((Map) (userJson.get("followed_by"))).get("count"))).intValue();
+        instance.profilePicUrl = (String) userJson.get("profile_pic_url");
+        instance.id = Long.parseLong((String) userJson.get("id"));
+        instance.mediaCount = ((Double) (((Map) (userJson.get("media"))).get("count"))).intValue();
+        instance.isPrivate = (Boolean) userJson.get("is_private");
         instance.isVerified = (Boolean) userJson.get("is_verified");
         return instance;
     }

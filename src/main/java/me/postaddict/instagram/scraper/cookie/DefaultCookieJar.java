@@ -35,4 +35,19 @@ public class DefaultCookieJar implements CookieJar {
         return cookies;
     }
 
+    synchronized public void removeCookie(String name) {
+        for (Iterator<Cookie> it = cache.iterator(); it.hasNext(); ) {
+            Cookie cookie = it.next();
+            if (cookie.name().equals(name))
+                it.remove();
+        }
+    }
+
+    synchronized public void print() {
+        for (Iterator<Cookie> it = cache.iterator(); it.hasNext(); ) {
+            Cookie cookie = it.next();
+            System.out.println("cookie " + cookie);
+        }
+    }
+
 }

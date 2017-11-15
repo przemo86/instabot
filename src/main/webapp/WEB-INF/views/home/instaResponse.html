@@ -2,7 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<form class="form-narrow form-horizontal" action="#" method="post" th:action="@{/adduser}">
+<form class="form-narrow form-horizontal" action="#" method="post"
+      onsubmit="return false;"
+      id="addnewinstauser">
     <div class="insta-login-fieldset">
 
         <fieldset>
@@ -32,9 +34,9 @@
                 </div>
                 <div class="row">
                     <div class="form-group col-lg-12">
-
-                        <button type="button" class="btn btn-block signin-button" id="add">Save user
+                        <button type="submit" class="btn btn-block signin-button" id="add">Save user
                         </button>
+                        <div id="errors" class="alert alert-danger" style="display: none; margin-top: 10px"></div>
                     </div>
                 </div>
 

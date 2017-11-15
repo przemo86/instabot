@@ -1,14 +1,11 @@
 package pl.szewczyk.stats;
 
 import com.google.gson.annotations.Expose;
-import me.postaddict.instagram.scraper.domain.Comment;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by przem on 27.09.2017.
@@ -23,7 +20,6 @@ public class Media implements Serializable {
     @SequenceGenerator(name = "media_seq", sequenceName = "media_seq", allocationSize = 1, schema = "instabot")
     private Long id;
 
-    @ManyToOne()
     @Expose
     private Statistic statistic;
 
@@ -36,9 +32,8 @@ public class Media implements Serializable {
     private String link;
 
     @Expose
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "tags", schema = "instabot")
-    private Set<String> tags = new HashSet<>();
+    @Column(length = 3000)
+    private String tags;
 
     @Transient
     @Expose
@@ -58,7 +53,7 @@ public class Media implements Serializable {
 
     @Transient
     @Expose
-    private List<Comment> comments;
+    private Integer commentsCount;
 
     public Media() {
     }
@@ -67,7 +62,7 @@ public class Media implements Serializable {
         this.link = mediaFeedData.link;
         this.mediaId = mediaFeedData.id;
         this.thumbnailUri = mediaFeedData.imageUrls.thumbnail;
-        this.tags = new HashSet<>(mediaFeedData.getTags());
+        this.tags = mediaFeedData.getTags().stream().collect(Collectors.joining(","));
     }
 
 
@@ -111,11 +106,11 @@ public class Media implements Serializable {
         this.link = link;
     }
 
-    public Set<String> getTags() {
+    public String getTags() {
         return tags;
     }
 
-    public void setTags(Set<String> tags) {
+    public void setTags(String tags) {
         this.tags = tags;
     }
 
@@ -151,11 +146,26 @@ public class Media implements Serializable {
         this.userLikes = userLikes;
     }
 
-    public List<Comment> getComments() {
-        return comments;
+    public Integer getCommentsCount() {
+        return commentsCount;
     }
 
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
+    public void setCommentsCount(Integer commentsCount) {
+        this.commentsCount = commentsCount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Media media = (Media) o;
+
+        return mediaId != null ? mediaId.equals(media.mediaId) : media.mediaId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return mediaId != null ? mediaId.hashCode() : 0;
     }
 }

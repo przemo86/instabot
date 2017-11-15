@@ -70,27 +70,25 @@
             <thead>
             <tr>
                 <th>Media</th>
-                <th>Tags</th>
+                <th style="width: 30%; max-width: 30%; word-wrap: break-word">Tags</th>
                 <th>Likes</th>
                 <th>Comments</th>
                 <th>User</th>
                 <th>Followed by</th>
-                <th>Like</th>
-                <th>Post comment</th>
             </tr>
             </thead>
             <tr th:each="media : ${mediaList}">
                 <td><a th:href="${media.link}" target="_blank"><img style="width: 50px" th:src="${media.thumbnailUri}"
-                                                                    th:alt="${media.thumbnailUri}"/></a></td>
-                <td>
-                    <span th:each="tag : ${media.tags}" th:text="${tag}"
+                                                                    alt="[picture]"/></a></td>
+                <td style="width: 30%; max-width: 30%; word-wrap: break-word">
+                    <div th:each="tag : ${#strings.listSplit(media.tags,',')}" th:text="${tag}"
                           th:class="${#lists.contains(#strings.listSplit(project.includeHashtags,','),tag)} ? 'label label-success' : 'label label-default'"
-                          style="margin-right: 1px"></span>
+                          style="margin-right: 1px"></div>
                 </td>
                 <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="like" th:data-id="${media.mediaId}"
-                       th:text="${media.userLikes == null} ? '0' : ${#lists.size(media.userLikes)}"></a></td>
+                       th:text="${media.userLikes}"></a></td>
                 <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="comment" th:data-id="${media.mediaId}"
-                       th:text="${media.comments == null} ? '0' : ${#lists.size(media.comments)}"></a></td>
+                       th:text="${media.commentsCount}"></a></td>
                 <td><a th:href="'https://www.instagram.com/' + ${media.userName}" target="_blank"><img
                         class="img-circle"
                         style="width: 50px; padding-right: 10px"
@@ -100,49 +98,49 @@
                 </td>
                 <td th:text="${media.userFollowed}"></td>
 
-                <td><a href="#" class="like" th:data-mediaid="${media.mediaId}">Polub</a></td>
-                <td><a href="#" class="comment" th:data-mediaid="${media.mediaId}">Skomentuj</a></td>
+                <!--<td><a href="#" class="like" th:data-mediaid="${media.mediaId}">Polub</a></td>-->
+                <!--<td><a href="#" class="comment" th:data-mediaid="${media.mediaId}">Skomentuj</a></td>-->
 
             </tr>
         </table>
-        <script th:inline="javascript">
-            $('.like').on('click', function (e) {
-                var id = e.currentTarget.dataset['mediaid'];
+        <!--<script th:inline="javascript">-->
+            <!--$('.like').on('click', function (e) {-->
+                <!--var id = e.currentTarget.dataset['mediaid'];-->
 
-                $.ajax({
-                    url: "/stats/like?id=" + id,
-                    cache: false
-                }).done(function (html) {
-                    showPopup('Polubiono', 'alert-success');
-                }).fail(function (html) {
-                    showPopup('Już polubiono', 'alert-danger');
-                });
-            });
+                <!--$.ajax({-->
+                    <!--url: "/stats/like?id=" + id,-->
+                    <!--cache: false-->
+                <!--}).done(function (html) {-->
+                    <!--showPopup('Polubiono', 'alert-success');-->
+                <!--}).fail(function (html) {-->
+                    <!--showPopup('Już polubiono', 'alert-danger');-->
+                <!--});-->
+            <!--});-->
 
-            $('.comment').on('click', function (e) {
-                var id = e.currentTarget.dataset['mediaid'];
+            <!--$('.comment').on('click', function (e) {-->
+                <!--var id = e.currentTarget.dataset['mediaid'];-->
 
-                $.ajax({
-                    url: "/stats/comment?id=" + id,
-                    cache: false
-                }).done(function (html) {
-                    showPopup('Skomentowano', 'alert-success');
-                }).fail(function (html) {
-                    showPopup('Już skomentowano', 'alert-danger');
-                });
-            });
+                <!--$.ajax({-->
+                    <!--url: "/stats/comment?id=" + id,-->
+                    <!--cache: false-->
+                <!--}).done(function (html) {-->
+                    <!--showPopup('Skomentowano', 'alert-success');-->
+                <!--}).fail(function (html) {-->
+                    <!--showPopup('Już skomentowano', 'alert-danger');-->
+                <!--});-->
+            <!--});-->
 
-            function showPopup(message, attr) {
-                $("#notification").hide();
-                $('#notification').removeClass('alert-success');
-                $('#notification').removeClass('alert-danger');
-                $('#notification').addClass(attr);
+            <!--function showPopup(message, attr) {-->
+                <!--$("#notification").hide();-->
+                <!--$('#notification').removeClass('alert-success');-->
+                <!--$('#notification').removeClass('alert-danger');-->
+                <!--$('#notification').addClass(attr);-->
 
-                $("#notification").empty();
-                $("#notification").fadeIn("slow").append(message);
-                setTimeout('$("#notification").fadeOut("slow")', 2500);
-            }
-        </script>
+                <!--$("#notification").empty();-->
+                <!--$("#notification").fadeIn("slow").append(message);-->
+                <!--setTimeout('$("#notification").fadeOut("slow")', 2500);-->
+            <!--}-->
+        <!--</script>-->
     </div>
 
     <div th:fragment="hashtags">

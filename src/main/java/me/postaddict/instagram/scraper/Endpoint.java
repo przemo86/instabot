@@ -3,6 +3,8 @@ package me.postaddict.instagram.scraper;
 public abstract class Endpoint {
     public static final String BASE_URL = "https://www.instagram.com";
     public static final String LOGIN_URL = "https://www.instagram.com/accounts/login/ajax/";
+    public static final String LOGOUT_URL = "https://www.instagram.com/accounts/logout/";
+    public static final String USER_SELF_URL = "https://www.instagram.com/accounts/edit/?__a=1";
     public static final String ACCOUNT_PAGE = "https://www.instagram.com/{{username}}";
     public static final String MEDIA_LINK = "https://www.instagram.com/p/{{code}}";
     public static final String ACCOUNT_MEDIAS = "https://www.instagram.com/{{username}}/?__a=1&max_id={{maxId}}";

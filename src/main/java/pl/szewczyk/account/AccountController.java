@@ -11,12 +11,21 @@ import org.springframework.web.bind.annotation.*;
 import pl.szewczyk.instagram.InstaConstants;
 import pl.szewczyk.instagram.InstaUser;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -35,8 +44,7 @@ public class AccountController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private InstaConstants instaConstants;
+    private InstaConstants instaConstants = new InstaConstants();
 
     @ModelAttribute("module")
     String module() {
@@ -73,38 +81,21 @@ public class AccountController {
     @GetMapping(value = "/user", params = {"id"})
     @PreAuthorize("hasRole('ROLE_ADMIN') or @accountRepository.findOneByEmail(#principal.name).id == #id")
     public String user(Model model, @P("id") @RequestParam(value = "id") Long id,
-//                       @RequestParam(value = "code", required = false) String code,
-//                       @RequestParam(value = "error", required = false) String error,
-//                       @RequestParam(value = "error_reason", required = false) String error_reason,
-//                       @RequestParam(value = "error_description", required = false) String error_description,
                        HttpServletRequest request, @P("principal") Principal principal) {
-        System.out.println("GET USER ID " + id);
-        Account account = em.createQuery("select a from Account a left join fetch a.instaUsers where a.id = :id", Account.class).setParameter("id", id).getSingleResult();
+        Account account = em.createQuery("select a from Account a left outer join fetch a.instaUsers where a.id = :id", Account.class).setParameter("id", id).getSingleResult();
         request.getSession().setAttribute("account", account);
         UserForm userForm = new UserForm(account);
-        System.out.println(" " + userForm);
         model.addAttribute("id", account.getId());
         model.addAttribute("userForm", userForm);
 
-//        model.addAttribute("error", error);
-//        model.addAttribute("error_reason", error_reason);
-//        model.addAttribute("error_description", error_description);
-
         request.getSession(false).setAttribute("userForm", userForm);
-        System.out.println("get ID " + userForm);
-
         return "home/userForm";
-
     }
 
     @PostMapping(path = "user", params = {"save"})
     public String save(@Valid @ModelAttribute UserForm userForm, Errors errors, HttpServletRequest request) {
-        System.out.println("save " + errors);
-        System.out.println("save " + userForm);
-        Account account = (Account) request.getSession().getAttribute("account");
+        Account account = (Account) request.getSession(false).getAttribute("account");
         if (account != null) {
-            System.out.println(account.getEmail());
-            System.out.println(userForm.getEmail());
             if (!account.getEmail().equals(userForm.getEmail())) {
                 logger.severe("NIBY ZE ERROR?");
                 return "home/userForm";
@@ -114,15 +105,17 @@ public class AccountController {
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-        logger.severe("errors countMediaId " + errors.getErrorCount() + "   " + errors.hasErrors());
         if (Objects.nonNull(userForm.getExpires()) && !userForm.getExpires().equals(""))
             try {
                 account.setExpires(sdf.parse(userForm.getExpires()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+        UserForm u2 = (UserForm) request.getSession(false).getAttribute("userForm");
 
         account.setLocked(userForm.isLocked());
+        account.setInstaUsers(userForm.getInstaUsers());
+        account.getInstaUsers().addAll(u2.getInstaUsers());
 
         if (userForm.getPassword() != null && !"".equals(userForm.getPassword()))
             if (userForm.getRepeatPassword() != null && !"".equals(userForm.getRepeatPassword()))
@@ -130,6 +123,10 @@ public class AccountController {
                     account.setPassword(passwordEncoder.encode(userForm.getPassword()));
         logger.severe("tostring = " + userForm.toString());
 
+        InstaUser iu = instaUserRepository.save(account.getInstaUsers().iterator().next());
+
+        System.out.println(account.getInstaUsers().size());
+        System.out.println(Arrays.toString(account.getInstaUsers().iterator().next().getPassword()));
         accountRepository.save(account);
 
         return "redirect:users";
@@ -139,14 +136,22 @@ public class AccountController {
 
     @RequestMapping(value = "/addnewinstauser", method = RequestMethod.POST)
     public String addInstaUser(Model model, @RequestParam(value = "username", required = false) String username,
-                               @RequestParam(value = "password", required = false) String pass, HttpServletRequest request) {
-        System.out.println("POST USER NO ID");
-        System.out.println("MODEL " + username);
-        System.out.println("pass " + pass);
+                               @RequestParam(value = "password", required = false) String pass, HttpServletRequest request,
+                               HttpServletResponse response) {
+        me.postaddict.instagram.scraper.domain.Account acc;
+        try {
+            acc = instaConstants.instaLogin(username, pass);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(500);
+            try {
+                response.getWriter().append("Nie udało się zalogować do Instagrama \n(" + e.getMessage() + ")");
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            return null;
+        }
 
-
-        me.postaddict.instagram.scraper.domain.Account acc = instaConstants.instaLogin(username, pass);
-        System.out.println("ACC " + acc);
         if (acc != null) {
 
             InstaUser user = new InstaUser();
@@ -156,13 +161,30 @@ public class AccountController {
             user.setProfilePictureURL(acc.profilePicUrl);
             user.setInstaUserName(acc.username);
             user.setId(acc.id);
+            try {
+                user.setPassword(instaConstants.encrypt(pass.getBytes("UTF-8")));
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
 
-            request.getSession(false).setAttribute("instauser", user);
+            UserForm userForm = (UserForm) request.getSession(false).getAttribute("userForm");
+            userForm.getInstaUsers().add(user);
 
-
+            model.addAttribute("userForm", userForm);
+            request.setAttribute("userForm", userForm);
         }
 
-        return "redirect:users";
+        return "fragments/components :: instaUserTable";
     }
 
     @GetMapping("/listusers")

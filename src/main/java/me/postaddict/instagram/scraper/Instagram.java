@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Instagram implements AuthenticatedInsta {
+    private final int MAX_LOGIN = 10;
 
     public OkHttpClient httpClient;
     public Gson gson;
+    private String username;
 
     public Instagram(OkHttpClient httpClient) {
         this.httpClient = httpClient;
@@ -60,7 +62,7 @@ public class Instagram implements AuthenticatedInsta {
         response.body().close();
     }
 
-    public void login1(String username, String password) throws IOException, IllegalAccessException {
+    public void login1(String username, String password, int num) throws IOException, IllegalAccessException {
         if (username == null || password == null) {
             throw new InstagramAuthException("Specify username and password");
         }
@@ -78,41 +80,24 @@ public class Instagram implements AuthenticatedInsta {
 
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         response.body().close();
-
-        if (response.code() != 200)
-            login1(username,password);
+        System.out.println("LOGIN response code " + response.code());
+        if (response.code() != 200 && num <= MAX_LOGIN) {
+            System.out.println("TRY AGAIN");
+            login1(username, password, num + 1);
+        }
+        this.username = username;
     }
 
     public Account login(String username, String password) throws IOException, IllegalAccessException {
-        if (username == null || password == null) {
-            throw new InstagramAuthException("Specify username and password");
-        }
-        System.out.println("LOGIN " + username + " " + password);
-        RequestBody formBody = new FormBody.Builder()
-                .add("username", username)
-                .add("password", password)
-                .build();
+        login1(username, password, 0);
 
         Request request = new Request.Builder()
-                .url(Endpoint.LOGIN_URL)
-                .header("Referer", Endpoint.BASE_URL + "/")
-                .post(formBody)
-                .build();
-
-        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
-        System.out.println("AUTH " + response.body().string().substring(0, 10));
-        if (!((Boolean) gson.fromJson(response.body().string(), Map.class).get("authenticated"))) {
-            throw new IllegalAccessException("Niepoprawne dane logowania");
-        }
-        response.body().close();
-
-        request = new Request.Builder()
                 .url(Endpoint.USER_SELF_URL)
                 .header("Referer", Endpoint.LOGIN_URL)
                 .get()
                 .build();
 
-        response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         String jsonString = response.body().string();
 
         response.body().close();
@@ -121,6 +106,8 @@ public class Instagram implements AuthenticatedInsta {
         String user = (String) ((Map) gson.fromJson(jsonString, Map.class).get("form_data")).get("username");
 
         Account acc = getAccountByUsername(user);
+
+        this.username = username;
         return acc;
 
     }
@@ -454,7 +441,7 @@ public class Instagram implements AuthenticatedInsta {
     public Comment addMediaComment(String code, String commentText) throws IOException {
         String url = Endpoint.addMediaCommentLink(Media.getIdFromCode(code));
         System.out.println("OMMENT " + url);
-        System.out.println("https://instagram.com/p/"+code);
+        System.out.println("https://instagram.com/p/" + code);
         FormBody formBody = new FormBody.Builder()
                 .add("comment_text", commentText)
                 .build();
@@ -483,5 +470,13 @@ public class Instagram implements AuthenticatedInsta {
 
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         response.body().close();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

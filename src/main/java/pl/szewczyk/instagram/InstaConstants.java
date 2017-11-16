@@ -68,6 +68,10 @@ public class InstaConstants {
     }
 
     public Instagram getInstagramLoggedIn(String login) {
+        if (instagramLoggedIn != null && instagramLoggedIn.getUsername().equals(login)) {
+            return instagramLoggedIn;
+        }
+
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         cookieJar.removeCookie("sessionid");
         cookieJar.removeCookie("ds_user_id");
@@ -79,7 +83,7 @@ public class InstaConstants {
         try {
             byte[] decPass = decrypt(password);
             String pass = new String(decPass, "UTF-8");
-            instagramLoggedIn.login1(user.getInstaUserName(), pass);
+            instagramLoggedIn.login1(user.getInstaUserName(), pass, 0);
             System.out.println("RET " + instagramLoggedIn);
             return instagramLoggedIn;
         } catch (Exception e) {

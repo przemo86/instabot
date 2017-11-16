@@ -79,7 +79,7 @@
             </thead>
             <tr th:each="media : ${mediaList}">
                 <td><a th:href="${media.link}" target="_blank"><img style="width: 50px" th:src="${media.thumbnailUri}"
-                                                                    alt="[picture]"/></a></td>
+                                                                    alt="[deleted]"/></a></td>
                 <td style="width: 30%; max-width: 30%; word-wrap: break-word">
                     <div th:each="tag : ${#strings.listSplit(media.tags,',')}" th:text="${tag}"
                           th:class="${#lists.contains(#strings.listSplit(project.includeHashtags,','),tag)} ? 'label label-success' : 'label label-default'"

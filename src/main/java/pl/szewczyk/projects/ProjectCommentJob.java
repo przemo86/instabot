@@ -11,8 +11,11 @@ import java.io.IOException;
 
 public class ProjectCommentJob extends ProjectJob {
     public void comment(Media mediaFeedData, String comment, Instagram instagram) throws IOException {
-
-        instagram.addMediaComment(mediaFeedData.shortcode, comment);
+        try {
+            instagram.addMediaComment(mediaFeedData.shortcode, comment);
+        } catch (Exception r) {
+            System.out.println("NIE UDALO SIE SKOMENTOWAC...");
+        }
     }
 
     @Override

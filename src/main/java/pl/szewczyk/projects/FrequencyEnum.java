@@ -15,7 +15,8 @@ public enum FrequencyEnum {
     _45(45),
     _50(50),
     _55(55),
-    _60(60);
+    _60(60),
+    _120(120);
 
     private int frequency;
 

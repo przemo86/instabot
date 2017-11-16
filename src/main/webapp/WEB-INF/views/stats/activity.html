@@ -128,29 +128,36 @@
 
         $("#canvas").click(
             function (evt) {
+                console.log('CLIKC');
                 var activePoints = myLineChart.getElementsAtEvent(evt);
                 if (activePoints.length > 0) {
-                    var statId = myLikeLabels[activePoints[0]._index].split('###')[1];
-                    $("#details").fadeOut();
-                    $("#status").fadeIn();
-                    $("#preloader").fadeIn();
-
-                    $("#details").load('/activity?id=' + statId, function () {
-                        $("#status").fadeOut();
-                        $("#preloader").fadeOut();
-                        $("#details").fadeIn();
-                    });
+                    var statId;
+                    if (myLikeLabels[activePoints[0]._index] != undefined){
+                        statId = myLikeLabels[activePoints[0]._index].split('###')[1];
+                } else {
+                    statId = myCommentLabels[activePoints[0]._index].split('###')[1];
                 }
+                $("#details").fadeOut();
+                $("#status").fadeIn();
+                $("#preloader").fadeIn();
+
+                $("#details").load('/activity?id=' + statId, function () {
+                    $("#status").fadeOut();
+                    $("#preloader").fadeOut();
+                    $("#details").fadeIn();
+                });
             }
-        );
+        }
+        )
+        ;
 
         $('#myModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
             var type = button.data('type'); // Extract info from data-* attributes
             var id = button.data('id'); // Extract info from data-* attributes
             var modal = $(this);
-console.log('aaa ' + type);
-console.log('aaa ' + id);
+            console.log('aaa ' + type);
+            console.log('aaa ' + id);
             if (type == 'like') {
                 modal.find('.modal-title').text('Użytkownicy polubili');
                 modal.find('.modal-body').load('/stats/media?type=like&id=' + id);

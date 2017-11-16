@@ -90,8 +90,6 @@ public abstract class ProjectJob implements Job {
                 Iterator<Media> it = searches.iterator();
                 while (it.hasNext()) {
                     Media media = it.next();
-                    System.out.println("TAGS = " + media.getTags());
-                    System.out.println("EXCLUDE " + project.getExcludeHashtags());
                     if (Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(",")))) {
                         System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));
                         if (projectRepository.countMediaId(media.id, kind, project) == 0L) {
@@ -128,10 +126,6 @@ public abstract class ProjectJob implements Job {
                 Iterator<Media> it = searches.iterator();
                 while (it.hasNext()) {
                     Media media = it.next();
-                    System.out.println(media.shortcode + " TAGS = " + media.getTags());
-                    System.out.println("SEARCH FOR ALL " + project.getIncludeHashtags());
-                    System.out.println("DISJOINT " + Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(","))));
-                    System.out.println("CONTAINSALL " + media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()).containsAll(Arrays.asList(project.getIncludeHashtags().toLowerCase().split(","))));
                     if (Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(","))) &&
                             media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()).containsAll(Arrays.asList(project.getIncludeHashtags().toLowerCase().split(",")))) {
                         System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));

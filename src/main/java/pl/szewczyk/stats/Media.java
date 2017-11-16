@@ -21,7 +21,8 @@ public class Media implements Serializable {
     private Long id;
 
     @Expose
-    @Column(name = "stat_id")
+    @ManyToOne
+    @JoinColumn(name = "stat_id", referencedColumnName = "id")
     private Statistic statistic;
 
     private String mediaId;

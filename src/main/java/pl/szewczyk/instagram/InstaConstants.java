@@ -68,10 +68,11 @@ public class InstaConstants {
     }
 
     public Instagram getInstagramLoggedIn(String login) {
-        System.out.println("repo " + instaUserRepository);
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+        cookieJar.removeCookie("sessionid");
+        cookieJar.removeCookie("ds_user_id");
         instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder().cookieJar(cookieJar).build());
-        System.out.println("repo2 " + instaUserRepository);
+
         InstaUser user = instaUserRepository.findByUserName(login);
         byte[] password = user.getPassword();
 

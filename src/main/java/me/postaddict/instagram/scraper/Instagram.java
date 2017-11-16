@@ -79,8 +79,8 @@ public class Instagram implements AuthenticatedInsta {
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         response.body().close();
 
-//        if (response.code() != 200)
-//            login1(username,password);
+        if (response.code() != 200)
+            login1(username,password);
     }
 
     public Account login(String username, String password) throws IOException, IllegalAccessException {
@@ -344,7 +344,7 @@ public class Instagram implements AuthenticatedInsta {
     }
 
     public void likeMediaByCode(String code) throws IOException {
-        String url = Endpoint.getMediaLikeLink(code);
+        String url = Endpoint.getMediaLikeLink(Media.getIdFromCode(code));
         System.out.println("LIKE MEDIA URL = " + url);
         Request request = new Request.Builder()
                 .url(url)
@@ -452,7 +452,9 @@ public class Instagram implements AuthenticatedInsta {
     }
 
     public Comment addMediaComment(String code, String commentText) throws IOException {
-        String url = Endpoint.addMediaCommentLink(code);
+        String url = Endpoint.addMediaCommentLink(Media.getIdFromCode(code));
+        System.out.println("OMMENT " + url);
+        System.out.println("https://instagram.com/p/"+code);
         FormBody formBody = new FormBody.Builder()
                 .add("comment_text", commentText)
                 .build();
@@ -461,9 +463,10 @@ public class Instagram implements AuthenticatedInsta {
                 .header("Referer", Endpoint.getMediaPageLinkByCode(code) + "/")
                 .post(formBody)
                 .build();
-
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        System.out.println("STAUS " + response.code());
         String jsonString = response.body().string();
+        System.out.println("RESP " + jsonString.substring(0, jsonString.length() < 250 ? jsonString.length() - 1 : 1000));
         response.body().close();
 
         Map commentMap = gson.fromJson(jsonString, Map.class);

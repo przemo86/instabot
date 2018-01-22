@@ -4,8 +4,8 @@ package pl.szewczyk.account;
  * Created by przem on 29.09.2017.
  */
 public enum Role {
-    ROLE_ADMIN("ROLE_ADMIN", "role.admin"),
-    ROLE_USER("ROLE_USER", "role.user");
+    ROLE_USER("ROLE_USER", "role.user"),
+    ROLE_ADMIN("ROLE_ADMIN", "role.admin");
 
     private String role;
     private String description;

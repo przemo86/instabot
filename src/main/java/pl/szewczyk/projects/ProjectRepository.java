@@ -13,13 +13,29 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query(value = "select count(*) " +
             "from instabot.media m join " +
-            "instabot.statistics s on s.id = m.statistic_id " +
+            "instabot.statistics s on s.id = m.stat_id " +
             "where m.mediaid = :mediaid and s.projectid = :projectid and s.kind = :kind", nativeQuery = true)
     Long countMediaId(@Param("mediaid") String mediaid, @Param("kind") Character kind, @Param("projectid") Project project);
+
 
     @Query(value = "select count(*) " +
             "            from instabot.media m join" +
             "            instabot.statistics s on s.id = m.stat_id" +
             "            where s.projectid = :projectid and s.kind = :kind", nativeQuery = true)
     Long count(@Param("kind") Character kind, @Param("projectid") Project project);
+
+
+
+
+    @Query(value = "select count(*) " +
+            "from instabot.media m join " +
+            "instabot.statistics s on s.id = m.stat_id " +
+            "where m.mediaid = :mediaid and s.projectid = :projectid", nativeQuery = true)
+    Long countMediaId(@Param("mediaid") String mediaid, @Param("projectid") Project project);
+
+    @Query(value = "select count(*) " +
+            "            from instabot.media m join" +
+            "            instabot.statistics s on s.id = m.stat_id" +
+            "            where s.projectid = :projectid", nativeQuery = true)
+    Long count(@Param("projectid") Project project);
 }

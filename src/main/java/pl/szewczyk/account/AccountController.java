@@ -2,7 +2,6 @@ package pl.szewczyk.account;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.method.P;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,20 +17,20 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 @Controller
 public class AccountController {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     @Autowired
     private AccountRepository accountRepository;
@@ -57,14 +56,13 @@ public class AccountController {
         return "home/users";
     }
 
-    private Logger logger = Logger.getLogger(Account.class.getName());
 
     @GetMapping("/user")
     public String addUser(Model model, HttpServletRequest request) {
-        System.out.println("GET USER NO ID");
+        log.info("GET USER NO ID");
         request.getSession(false).removeAttribute("account");
         UserForm userForm = new UserForm();
-        System.out.println(" " + userForm);
+        log.info(" " + userForm);
         model.addAttribute("userForm", userForm);
         request.getSession(false).setAttribute("userForm", userForm);
         return "home/userForm";
@@ -79,7 +77,7 @@ public class AccountController {
     }
 
     @GetMapping(value = "/user", params = {"id"})
-    @PreAuthorize("hasRole('ROLE_ADMIN') or @accountRepository.findOneByEmail(#principal.name).id == #id")
+//    @PreAuthorize("hasRole('ROLE_ADMIN') or @accountRepository.findOneByEmail(#principal.name).id == #id")
     public String user(Model model, @P("id") @RequestParam(value = "id") Long id,
                        HttpServletRequest request, @P("principal") Principal principal) {
         Account account = em.createQuery("select a from Account a left outer join fetch a.instaUsers where a.id = :id", Account.class).setParameter("id", id).getSingleResult();
@@ -97,7 +95,7 @@ public class AccountController {
         Account account = (Account) request.getSession(false).getAttribute("account");
         if (account != null) {
             if (!account.getEmail().equals(userForm.getEmail())) {
-                logger.severe("NIBY ZE ERROR?");
+                log.severe("NIBY ZE ERROR?");
                 return "home/userForm";
             }
         } else {
@@ -121,13 +119,14 @@ public class AccountController {
             if (userForm.getRepeatPassword() != null && !"".equals(userForm.getRepeatPassword()))
                 if (userForm.getPassword().equals(userForm.getRepeatPassword()))
                     account.setPassword(passwordEncoder.encode(userForm.getPassword()));
-        logger.severe("tostring = " + userForm.toString());
+        log.severe("tostring = " + userForm.toString());
 
-        InstaUser iu = instaUserRepository.save(account.getInstaUsers().iterator().next());
-
-        System.out.println(account.getInstaUsers().size());
-        System.out.println(Arrays.toString(account.getInstaUsers().iterator().next().getPassword()));
         accountRepository.save(account);
+
+        if (account.getInstaUsers().size() > 0) {
+            InstaUser iu = instaUserRepository.save(account.getInstaUsers().iterator().next());
+        }
+
 
         return "redirect:users";
 
@@ -135,21 +134,19 @@ public class AccountController {
     }
 
     @RequestMapping(value = "/addnewinstauser", method = RequestMethod.POST)
-    public String addInstaUser(Model model, @RequestParam(value = "username", required = false) String username,
-                               @RequestParam(value = "password", required = false) String pass, HttpServletRequest request,
+    public String addInstaUser(Model model, @RequestParam(value = "insta_username", required = false) String username,
+                               @RequestParam(value = "insta_password", required = false) String pass, HttpServletRequest request,
                                HttpServletResponse response) {
         me.postaddict.instagram.scraper.domain.Account acc;
+
         try {
+            log.info(username);
+            log.info(pass);
             acc = instaConstants.instaLogin(username, pass);
         } catch (Exception e) {
-            e.printStackTrace();
-            response.setStatus(500);
-            try {
-                response.getWriter().append("Nie udało się zalogować do Instagrama \n(" + e.getMessage() + ")");
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-            return null;
+            log.severe("e MESSAGE " + e.getMessage());
+
+            return "Nie udało się zalogować do Instagrama \n(" + e.getMessage() + ")";
         }
 
         if (acc != null) {

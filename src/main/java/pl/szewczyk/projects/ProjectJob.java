@@ -3,28 +3,36 @@ package pl.szewczyk.projects;
 import me.postaddict.instagram.scraper.Instagram;
 import me.postaddict.instagram.scraper.domain.Media;
 import me.postaddict.instagram.scraper.exception.InstagramException;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import pl.szewczyk.instagram.InstaConstants;
 import pl.szewczyk.instagram.InstaUser;
+import pl.szewczyk.stats.MediaRepository;
 import pl.szewczyk.stats.Statistic;
 import pl.szewczyk.stats.StatisticsRepository;
 
 import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * Created by przem on 20.09.2017.
  */
 
-public abstract class ProjectJob implements Job {
+@DisallowConcurrentExecution
+public class ProjectJob implements InterruptableJob {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
+
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private MediaRepository mediaRepository;
 
     @Autowired
     private EntityManager em;
@@ -36,154 +44,294 @@ public abstract class ProjectJob implements Job {
 
     private InstaConstants instaConstants = new InstaConstants();
 
-    protected void init() {
-        System.out.println("INIT " + instaConstants);
+    private Instagram loggedInInstagram;
 
+    private Long id;
+
+    protected void init() {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        System.out.println("AFTER INIT " + instaConstants);
     }
 
+    private Thread currentThread;
+    private AtomicBoolean interrupted = new AtomicBoolean(false);
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        Long id = jobExecutionContext.getJobDetail().getJobDataMap().getLong("projectId");
-        Character kind = jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind");
-        System.out.println("Project ID " + id);
+        currentThread = Thread.currentThread();
+        id = jobExecutionContext.getJobDetail().getJobDataMap().getLong("projectId");
+        log.info("Project ID " + id);
 
-        System.out.println("xxx " + project);
         if (project == null) {
             init();
-        }
-        System.out.println("FIND ME ");
-        project = projectRepository.znajdz(id);
 
-        System.out.println("1  " + project);
+            project = projectRepository.znajdz(id);
 
-        InstaUser instaUser = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
-        System.out.println("2");
+            InstaUser instaUser = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
 
-        Instagram instagram = instaConstants.getInstagramLoggedIn(instaUser.getInstaUserName());
-        System.out.println("3");
-
-        Map<String, List<Media>> tags = new HashMap<>();
-        System.out.println("4");
-
-        for (String tag : project.getIncludeHashtags().split(",")) {
-            System.out.println("5 " + tag);
-            try {
-                List<Media> list = searchTag(tag);
-                if (list != null)
-                    tags.put(tag, list);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println(tag + " EXCEPTION " + e.getMessage());
-
+            loggedInInstagram = instaConstants.getInstagramLoggedIn(instaUser.getInstaUserName());
+            if (loggedInInstagram == null) {
+                log.severe("NIE ZALOGOWANY DO INSTAGRAMA :(");
+                return;
             }
+        }
+        Map<String, List<Media>> tags = new HashMap<>();
+        if (project.getIncludeHashtags() != null && !"".equals(project.getIncludeHashtags())) {
+
+            for (String tag : project.getIncludeHashtags().split(",")) {
+                try {
+                    List<Media> list = searchTag(tag);
+                    if (list != null)
+                        tags.put(tag, list);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.severe(tag + " EXCEPTION DURING SEARCG" + e.getMessage());
+
+                }
+            }
+        }
+        List<Media> locationsMedia = new ArrayList<>();
+        if (project.getLocationId() != null && !"".equals(project.getLocationId())) {
+            locationsMedia = searchLocation(project.getLocationId());
         }
         try {
-            if (HashtagSearchEnum.ANY.equals(project.getHashtagSearch())) {
-                System.out.println("ANY ");
-                List<Media> searches = tags.entrySet().stream()
-                        .flatMap(s -> s.getValue().stream())
-                        .distinct()
-                        .collect(Collectors.toList());
-                Iterator<Media> it = searches.iterator();
-                while (it.hasNext()) {
-                    Media media = it.next();
-                    if (Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(",")))) {
-                        System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));
-                        if (projectRepository.countMediaId(media.id, kind, project) == 0L) {
-                            System.out.println("ODPALAM ROBOTE");
-                            doJob(media, project.getCommentString(), instagram);
-                        } else {
-                            System.out.println("JUZ TO ROBILEM...");
-                            it.remove();
-                        }
-                    } else {
-                        it.remove();
-                    }
+            Statistic statistic = new Statistic(project, new HashSet<>());
+            statistic = statisticsRepository.save(statistic);
+//            if (HashtagSearchEnum.ANY.equals(project.getHashtagSearch())) {
+//
+//                log.info("ANY ");
+//                List<Media> searches = tags.entrySet().stream()
+//                        .flatMap(s -> s.getValue().stream())
+//                        .distinct()
+//                        .collect(Collectors.toList());
+//                Iterator<Media> it = searches.iterator();
+//                while (it.hasNext() && !interrupted.get()) {
+//                    System.out.println("EXEC CURRENT THREAD " + currentThread.getId());
+//                    currentThread.sleep(5000 + (long) (Math.random() * 10000));
+//
+//                    Media media = it.next();
+//                    if (Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(",")))) {
+//                        if (projectRepository.countMediaId(media.id, project) == 0L) {
+//                            log.info("BEDE ROBIL " + media.shortcode + " " + (project.isLike() ? "L" : "") + " " +
+//                                    (project.isComment() ? "C" : ""));
+//                            if (project.isLike()) {
+//                                log.info("LIKE ME " + instagram);
+//                                media.liked = like(media, instagram);
+//                            } else {
+//                                media.liked = false;
+//                            }
+//
+//                            media.action_time = new Date();
+//
+//                            if (project.isComment()) {
+//                                media.myComment = project.getRandomComment();
+//                                media.commented = comment(media, media.myComment, instagram);
+//                            } else {
+//                                media.commented = false;
+//                            }
+//                            pl.szewczyk.stats.Media media1 = new pl.szewczyk.stats.Media(media);
+//                            media1.setStatistic(statistic);
+//                            statistic.getMedia().add(media1);
+//                            mediaRepository.save(media1);
+//                            System.out.println("SAVE STATS");
+//                            //                                it.remove();
+//                        } else {
+//                            log.info("JUZ TO ROBILEM... " + media.shortcode);
+//                            it.remove();
+//                        }
+//                    } else {
+//                        log.info(media.shortcode + " nie pasuja hashtagi");
+//                        it.remove();
+//                    }
+//
+//                }
+//            }
+
+
+            List<Media> searches = tags.entrySet().stream()
+                    .flatMap(s -> s.getValue().stream())
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            if (project.getIncludeHashtags() != null && !"".equals(project.getIncludeHashtags())) {
+                if (project.getLocationId() != null && !"".equals(project.getLocationId())) {
+                    List<Media> finalLocationsMedia = locationsMedia;
+                    searches = searches.stream().filter(s -> finalLocationsMedia.contains(s)).collect(Collectors.toList());
                 }
-                System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
-                try {
-                    Statistic statistic = new Statistic(project, searches.stream().map(m -> new pl.szewczyk.stats.Media(m)).collect(Collectors.toSet()));
-                    statistic.getMedia().stream().forEach(m -> m.setStatistic(statistic));
-                    statistic.setKind(kind);
-                    statisticsRepository.save(statistic);
-                } catch (Exception e) {
-                    System.out.println("EXCEPTION " + e.getMessage());
-                    e.printStackTrace();
+            } else {
+                if (project.getLocationId() != null && !"".equals(project.getLocationId())) {
+                    searches = searchLocation(project.getLocationId());
                 }
-                System.out.println("SAVED");
+            }
+            log.info("AFTER INCLUDE AND LOCATIONS FILTER = " + searches.size());
+            searches = searches.stream()
+                    .filter(s -> Collections.disjoint(
+                            s.getTags().stream()
+                                    .map(t -> t.toLowerCase())
+                                    .collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(","))
+                    )).collect(Collectors.toList());
+            log.info("AFTER EXCLUDE " + searches.size());
+            if (project.getBlacklisted() != null && !"".equals(project.getBlacklisted())) {
+                List blackListed = Arrays.asList(project.getBlacklisted().toLowerCase().split("\n")).stream().map(b -> Arrays.asList(b.split(","))).collect(Collectors.toList());
+
+                searches.stream().filter(s -> Collections.disjoint(Arrays.asList(s.caption.toLowerCase().split(" ")), blackListed)).collect(Collectors.toList());
+            }
+            log.info("AFTER BLACKLIST FILTER " + searches.size());
+
+            if (searches.size() > 20) {
+                Collections.shuffle(searches);
+                searches = searches.subList(0, 19);
             }
 
+            log.info("AFTER SHUFFLING AND LIMITATION " + searches.size());
 
-            if (HashtagSearchEnum.ALL.equals(project.getHashtagSearch())) {
-                System.out.println("ALL ");
-                List<Media> searches = tags.entrySet().stream()
-                        .flatMap(s -> s.getValue().stream())
-                        .distinct()
-                        .collect(Collectors.toList());
-                Iterator<Media> it = searches.iterator();
-                while (it.hasNext()) {
-                    Media media = it.next();
-                    if (Collections.disjoint(media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(","))) &&
-                            media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()).containsAll(Arrays.asList(project.getIncludeHashtags().toLowerCase().split(",")))) {
-                        System.out.println("CHECKING    === " + projectRepository.countMediaId(media.id, kind, project));
-                        if (projectRepository.countMediaId(media.id, kind, project) == 0L) {
-                            System.out.println("ODPALAM ROBOTE");
+            Iterator<Media> it = searches.iterator();
+            while (it.hasNext() && !interrupted.get()) {
+                Thread.sleep(5000 + (long) (Math.random() * 10000));
+                Media media = it.next();
+                log.info("in while " + media.shortcode);
+//                    if (media.getTags() != null) {
+                if ((HashtagSearchEnum.ALL.equals(project.getHashtagSearch()) &&
+                        media.getTags().stream().map(t -> t.toLowerCase()).collect(Collectors.toSet()).containsAll(Arrays.asList(project.getIncludeHashtags().toLowerCase().split(","))))
+                        || HashtagSearchEnum.ANY.equals(project.getHashtagSearch()) || HashtagSearchEnum.NONE.equals(project.getHashtagSearch())) {
+
+                    pl.szewczyk.stats.Media media1;
+                    if (null == (media1 = mediaRepository.findByProjectAndMediaId(media.id, project.getId()))) {
+                        media1 = new pl.szewczyk.stats.Media(media);
+                        media1.setStatistic(statistic);
+                        statistic.getMedia().add(media1);
+                    }
+                    log.info("WORKING WITH " + media.shortcode + " Like " + project.isLike() + ", comment " + project.isComment());
+                    if (project.isLike()) {
+                        if (mediaRepository.countMediaLiked(media.id, project.getId()) == 0L)
                             try {
-                                doJob(media, project.getCommentString(), instagram);
+                                media1.setLiked(like(media, loggedInInstagram));
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                media1.setLiked(false);
+                                break;
                             }
-                        } else {
-                            System.out.println("JUZ TO ROBILEM...");
-                            it.remove();
+                    } else {
+                        media.liked = false;
+                    }
+
+                    if (project.isComment()) {
+                        if (mediaRepository.countMediaCommented(media.id, project.getId()) == 0L) {
+                            media.myComment = project.getRandomComment();
+                            media1.setMyComment(media.myComment);
+                            try {
+                                media1.setCommented(comment(media, media.myComment, loggedInInstagram));
+                            } catch (Exception e) {
+                                media1.setCommented(false);
+                                break;
+                            }
                         }
                     } else {
-                        it.remove();
+                        media.commented = false;
                     }
+
+                    media1 = mediaRepository.save(media1);
+                    //                                it.remove();
+
+                } else if (project.getHashtagSearch() == null) {
+                    pl.szewczyk.stats.Media media1;
+                    if (null == mediaRepository.findByProjectAndMediaId(media.id, project.getId())) {
+                        media1 = new pl.szewczyk.stats.Media(media);
+                        media1.setStatistic(statistic);
+                        statistic.getMedia().add(media1);
+                        mediaRepository.save(media1);
+                    }
+                } else {
+                    log.info("TAGI NIE PASUJA " + media.getTags());
+                    it.remove();
                 }
-                System.out.println("SAVE STATS " + jobExecutionContext.getJobDetail().getJobDataMap().getChar("kind") + " WITH SEARCHES " + searches.size());
-                try {
-                    Statistic statistic = new Statistic(project, searches.stream().map(m -> new pl.szewczyk.stats.Media(m)).distinct().collect(Collectors.toSet()));
-                    statistic.getMedia().stream().forEach(m -> m.setStatistic(statistic));
-                    statistic.setKind(kind);
-                    statisticsRepository.save(statistic);
-                } catch (Exception e) {
-                    System.out.println("EXCEPTION " + e.getMessage());
-                    e.printStackTrace();
-                }
-                System.out.println("SAVED");
             }
-        } catch (NullPointerException e) {
+
+
+        } catch (
+                NullPointerException e)
+
+        {
             e.printStackTrace();
-        } catch (IOException e) {
+        } catch (
+                InterruptedException e)
+
+        {
             e.printStackTrace();
         }
+
+    }
+
+    public List<Media> searchLocation(String locationId) {
+        Instagram instagram = instaConstants.getInstagramAnonymous();
+
+        log.info("LOCATION SEARCH " + locationId);
+        List<Media> mediaFeed = null;
+        try {
+            mediaFeed = instagram.getLocationMediasById(locationId, 20);
+            log.info("FOUND " + mediaFeed.size());
+            if (null != project.getMediaAge()) {
+                long maxAge = System.currentTimeMillis() - (project.getMediaAge().longValue() * 60 /*min*/ * 60 /*sec*/ * 1000/*msec*/);
+                mediaFeed = mediaFeed.stream().filter(m -> m.createdTime >= maxAge).collect(Collectors.toList());
+            }
+            log.info("PO FILTRZE CZASOWYM " + mediaFeed.size());
+        } catch (InstagramException e) {
+            log.severe("ERRROR SEARCHING LOCATION " + locationId + "   " + project.getName());
+            log.severe(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return mediaFeed;
     }
 
     public List<Media> searchTag(String tag) {
         Instagram instagram = instaConstants.getInstagramAnonymous();
 
-        System.out.println("TAG SEARCH " + tag);
+        log.info("TAG SEARCH " + tag);
         List<Media> mediaFeed = null;
         try {
-            mediaFeed = instagram.getMediasByTag(tag, 1000);
-            System.out.println("FOUND " + mediaFeed.size());
+            mediaFeed = instagram.getMediasByTag(tag, 20, "");
+            log.info("FOUND " + mediaFeed.size());
+            if (null != project.getMediaAge()) {
+                long maxAge = System.currentTimeMillis() - (project.getMediaAge().longValue() * 60 /*min*/ * 60 /*sec*/ * 1000/*msec*/);
+                mediaFeed = mediaFeed.stream().filter(m -> m.createdTime >= maxAge).collect(Collectors.toList());
+            }
+            log.info("PO FILTRZE CZASOWYM " + mediaFeed.size());
         } catch (InstagramException e) {
-            System.err.println("ERRROR SEARCHING TAG " + tag + "   " + project.getName());
-            System.err.println(e.getMessage());
+            log.severe("ERRROR SEARCHING TAG " + tag + "   " + project.getName());
+            log.severe(e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            System.out.println("XXXXXXXXXXX exce");
             e.printStackTrace();
         }
         return mediaFeed;
     }
 
 
-    abstract void doJob(Media media, String comment, Instagram instagram) throws IOException;
+    private boolean comment(Media media, String comment, Instagram instagram) throws Exception {
 
+            instagram.addMediaComment(media.shortcode, comment);
+            return true;
+
+    }
+
+    private boolean like(Media media, Instagram instagram) throws IOException {
+            instagram.likeMediaByCode(media.shortcode);
+
+            return true;
+    }
+
+    @Override
+    public void interrupt() throws UnableToInterruptJobException {
+        System.out.println("INTERRUPT JOB");
+        if (currentThread != null) {
+            System.out.println("MY JOB " + currentThread.getId());
+            interrupted.set(true);
+            currentThread.interrupt();
+
+        } else {
+            System.out.println("NIE UMIEM ZATRZYMAC NULLA");
+        }
+    }
 }

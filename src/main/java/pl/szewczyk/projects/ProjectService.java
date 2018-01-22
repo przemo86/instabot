@@ -8,9 +8,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Component
 public class ProjectService {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     @PersistenceContext(type = PersistenceContextType.TRANSACTION)
     private EntityManager em;
@@ -29,10 +32,10 @@ public class ProjectService {
 
     public List<Project> listUserProjects(Account account) {
         if (account.getRole().equals(Role.ROLE_ADMIN)) {
-            System.out.println("SEARCH ALL");
+            log.info("SEARCH ALL");
             return listProjects();
         } else {
-            System.out.println("SEARCH FOR PROJECTS");
+            log.info("SEARCH FOR PROJECTS");
             return em.createQuery("select p from Project p join p.owner a where a.id = :account").setParameter("account", account.getId()).getResultList();
         }
     }

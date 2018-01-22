@@ -11,6 +11,10 @@ public class DashboardPOJO {
     private String projectName;
     private String customerName;
 
+    private Date runningTime;
+    private Date nextFire;
+    private Long hits;
+
     private Date likeRunningTime;
     private Date likeNextFire;
     private Long likeHits;
@@ -90,5 +94,29 @@ public class DashboardPOJO {
 
     public void setCommentHits(Long commentHits) {
         this.commentHits = commentHits;
+    }
+
+    public Date getRunningTime() {
+        return runningTime;
+    }
+
+    public void setRunningTime(Date runningTime) {
+        this.runningTime = runningTime;
+    }
+
+    public Date getNextFire() {
+        return nextFire;
+    }
+
+    public void setNextFire(Date nextFire) {
+        this.nextFire = nextFire;
+    }
+
+    public Long getHits() {
+        return hits;
+    }
+
+    public void setHits(Long hits) {
+        this.hits = hits;
     }
 }

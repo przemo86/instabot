@@ -8,11 +8,11 @@ import java.util.List;
 
 public interface AuthenticatedInsta extends AnonymousInsta {
 
-    Account login(String username, String password) throws IOException, IllegalAccessException;
+    Account login(String username, String password, int num) throws Exception;
     void likeMediaByCode(String code) throws IOException;
     void unlikeMediaByCode(String code) throws IOException;
 
-    Comment addMediaComment(String code, String commentText) throws IOException;
+    Comment addMediaComment(String code, String commentText) throws Exception;
 
     void deleteMediaComment(String code, String commentId) throws IOException;
 

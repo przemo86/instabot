@@ -19,11 +19,14 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 
 import java.security.Principal;
 import java.util.Collections;
+import java.util.logging.Logger;
 
 @Service("accountService")
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 @SessionAttributes("user")
 public class AccountService implements UserDetailsService {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     @Autowired
     private AccountRepository accountRepository;
@@ -48,12 +51,10 @@ public class AccountService implements UserDetailsService {
     }
 
     public int test(Principal pr) {
-        System.out.println("+++++++++++++" + accountRepository.findOneByEmail(pr.getName()).getId().intValue());
         return accountRepository.findOneByEmail(pr.getName()).getId().intValue();
     }
 
     public void signin(Account account) {
-        System.out.println("-------------------------SIGNIN " + account.getId());
         SecurityContextHolder.getContext().setAuthentication(authenticate(account));
     }
 

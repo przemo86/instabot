@@ -1,13 +1,12 @@
 package pl.szewczyk.config;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.cfg.Environment;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -18,14 +17,15 @@ import pl.szewczyk.Application;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackageClasses = Application.class)
 class JpaConfig {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     @Value("${dataSource.driverClassName}")
     private String driver;
@@ -54,33 +54,8 @@ class JpaConfig {
 
     @Bean
     public DataSource dataSource() {
-        HikariConfig config = new HikariConfig();
-        config.setDriverClassName(driver);
-
-        URI dbUri = null;
-        try {
-            dbUri = new URI(System.getenv("DATABASE_URL"));
-            String user = dbUri.getUserInfo().split(":")[0];
-            String pass = dbUri.getUserInfo().split(":")[1];
-            String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath()+"?sslmode=require";
-            System.out.println("DBURL " + dbUrl);
-            config.setJdbcUrl(dbUrl);
-            config.setUsername(user);
-            config.setPassword(pass);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-
-        config.setMinimumIdle(minPoolSize);
-        config.setMaximumPoolSize(maxPoolSize);
-
-
-        config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        config.addDataSourceProperty("useServerPrepStmts", "true");
-
-        return new HikariDataSource(config);
+        JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
+        return dataSourceLookup.getDataSource("jdbc/instabotDS");
     }
 
     @Bean

@@ -6,6 +6,17 @@
 </head>
 <body>
 <div th:fragment="activity">
+    <div class="form-group row">
+        <label for="hours" class="col-lg-4 control-label" style="text-align: right">Wybierz przedział czasowy</label>
+        <div class="col-lg-8">
+    <select class="form-control" id="hours">
+        <option value="24">ostatnie 24 godziny</option>
+        <option value="48">ostatnie 48 godzin</option>
+        <option value="168">ostatnie 7 dni</option>
+    </select>
+        </div>
+    </div>
+
     <canvas id="canvas" style="width: 100%; height: 500px;"></canvas>
     <div id="preloader">
         <div id="status">&nbsp;</div>
@@ -36,44 +47,38 @@
         $("#details").hide();
         $("#status").fadeOut();
         $("#preloader").fadeOut();
-        var chartLikeData = [[${chartLikeData}]];
-        var chartCommentData = [[${chartCommentData}]];
-        var myLikeLabels = [[${chartLikeLabels}]];
-        var myCommentLabels = [[${chartCommentLabels}]];
+        var chartData = [[${chartData}]];
+
+        var myLikeLabels = [[${chartLabels}]];
+
         //var projectTags = [[${project.includeHashtags}]];
         var chartLabels = [];
         //        var responseData;
 
         myLikeLabels.forEach(function (lbl) {
-            chartLabels.push(moment(lbl.split('###')[0]));
+            chartLabels.push(moment(lbl));
         });
 
-        myCommentLabels.forEach(function (lbl) {
-            if ($.inArray(moment(lbl.split('###')[0]), chartLabels))
-                chartLabels.push(moment(lbl.split('###')[0]));
-        });
+        //        myCommentLabels.forEach(function (lbl) {
+        //            if ($.inArray(moment(lbl), chartLabels))
+        //                chartLabels.push(moment(lbl));
+        //        });
 
 
         var ctx = $("#canvas")[0].getContext("2d");
 
         var myLineChart = new Chart(ctx, {
-            type: "line",
+            type: "bar",
+            responsive: true,
 
             data: {
                 datasets: [
                     {
-//                            steppedLine: 'before',
-                        label: 'Likes',
-                        data: chartLikeData,
-                        borderColor: '#66cccc',
-                        fill: false
-                    },
-                    {
-//                            steppedLine: 'before',
-                        label: 'Comments',
-                        data: chartCommentData,
-                        borderColor: '#36db52',
-                        fill: false
+                        label: 'Hits',
+                        data: chartData,
+                        borderColor: '#5D78E1',
+                        backgroundColor: '#B4BDE1',
+                        borderWidth: 2
                     }
                 ],
                 labels: chartLabels
@@ -81,22 +86,6 @@
             options: {
                 scales: {
                     xAxes: [
-                        {
-                            type: 'time',
-                            time: {
-                                displayFormats: {
-                                    'minute': 'mm'
-                                },
-                                unit: 'minute'
-                            },
-                            position: "bottom",
-                            ticks: {
-                                maxRotation: 90,
-                                minRotation: 90,
-                                mirror: false,
-                            }
-
-                        },
                         {
                             type: 'time',
                             distribution: 'linear',
@@ -122,52 +111,126 @@
                             }
                         }
                     }]
+                },
+                tooltips: {
+                    mode: 'index'
                 }
             }
         });
 
         $("#canvas").click(
             function (evt) {
-                console.log('CLIKC');
                 var activePoints = myLineChart.getElementsAtEvent(evt);
-                if (activePoints.length > 0) {
-                    var statId;
-                    if (myLikeLabels[activePoints[0]._index] != undefined){
-                        statId = myLikeLabels[activePoints[0]._index].split('###')[1];
-                } else {
-                    statId = myCommentLabels[activePoints[0]._index].split('###')[1];
-                }
-                $("#details").fadeOut();
-                $("#status").fadeIn();
-                $("#preloader").fadeIn();
 
-                $("#details").load('/activity?id=' + statId, function () {
-                    $("#status").fadeOut();
-                    $("#preloader").fadeOut();
-                    $("#details").fadeIn();
-                });
+                var statId;
+
+                if (activePoints.length > 0) {
+                    statId = myLikeLabels[activePoints[0]._index];
+                    if (statId == undefined)
+                        statId = myCommentLabels[activePoints[0]._index];
+                    console.log(statId);
+
+                    $("#details").fadeOut();
+                    $("#status").fadeIn();
+                    $("#preloader").fadeIn();
+
+                    $.ajax({
+                        url: '/activity?id=' + statId,
+                        type: 'GET',
+                        success: function (response) {
+                            $("#details").html(response);
+                            $("#status").fadeOut();
+                            $("#preloader").fadeOut();
+                            $("#details").fadeIn();
+                        }
+                    });
+                }
             }
-        }
-        )
-        ;
+        );
 
         $('#myModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
             var type = button.data('type'); // Extract info from data-* attributes
             var id = button.data('id'); // Extract info from data-* attributes
             var modal = $(this);
-            console.log('aaa ' + type);
-            console.log('aaa ' + id);
             if (type == 'like') {
                 modal.find('.modal-title').text('Użytkownicy polubili');
+                modal.find('.modal-body').empty();
                 modal.find('.modal-body').load('/stats/media?type=like&id=' + id);
             } else if (type == 'comment') {
                 modal.find('.modal-title').text('Użytkownicy skomentowali');
+                modal.find('.modal-body').empty();
                 modal.find('.modal-body').load('/stats/media?type=comment&id=' + id);
             }
         });
 
+        $('#hours').on('change', function () {
+            console.log('cahebe');
+            if (window.location.search.indexOf('hours') > -1) {
+                console.log(window.location.search.substr(window.location.search.indexOf('hours') + 6, 10));
+                window.location.search = window.location.search.substring(0, window.location.search.indexOf('hours') + 6) + $(this).val();
+            } else {
+                window.location = window.location + '&hours=' + $(this).val();
+            }
+        });
 
+        if (window.location.search.indexOf('hours=') > -1)
+            $('#hours').val(window.location.search.substring(window.location.search.indexOf('hours=') + 6, window.location.search.length));
+
+        function sortTable(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("medias");
+            switching = true;
+            //Set the sorting direction to ascending:
+            dir = "asc";
+            /*Make a loop that will continue until
+             no switching has been done:*/
+            while (switching) {
+                //start by saying: no switching is done:
+                switching = false;
+                rows = table.getElementsByTagName("TR");
+                /*Loop through all table rows (except the
+                 first, which contains table headers):*/
+                for (i = 1; i < (rows.length - 1); i++) {
+                    //start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /*Get the two elements you want to compare,
+                     one from current row and one from the next:*/
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    /*check if the two rows should switch place,
+                     based on the direction, asc or desc:*/
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            //if so, mark as a switch and break the loop:
+                            shouldSwitch= true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            //if so, mark as a switch and break the loop:
+                            shouldSwitch= true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    /*If a switch has been marked, make the switch
+                     and mark that a switch has been done:*/
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    //Each time a switch is done, increase this count by 1:
+                    switchcount ++;
+                } else {
+                    /*If no switching has been done AND the direction is "asc",
+                     set the direction to "desc" and run the while loop again.*/
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
     </script>
 
     <div class="alert " role="alert" id="notification"

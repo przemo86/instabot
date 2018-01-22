@@ -16,8 +16,8 @@ public class ProjectLikeJob extends ProjectJob {
         instagram.likeMediaByCode(media.shortcode);
     }
 
-    @Override
-    void doJob(Media media, String comment, Instagram instagram) throws IOException {
-        like(media, instagram);
-    }
+//    @Override
+//    void doJob(Media media, String comment, Instagram instagram) throws IOException {
+//        like(media, instagram);
+//    }
 }

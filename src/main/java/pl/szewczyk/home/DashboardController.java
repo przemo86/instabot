@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.szewczyk.account.Account;
+import pl.szewczyk.instagram.InstaConstants;
+import pl.szewczyk.instagram.InstaUser;
 import pl.szewczyk.projects.Project;
 import pl.szewczyk.projects.ProjectRepository;
 import pl.szewczyk.projects.ProjectScheduleRunner;
@@ -22,9 +24,12 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Controller
 class DashboardController {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     @ModelAttribute("module")
     String module() {
@@ -44,7 +49,6 @@ class DashboardController {
     private EntityManager em;
 
 
-
     @GetMapping("/")
     String index(Principal principal, Model model) {
         List<DashboardPOJO> dashboardPOJOS = new ArrayList<>();
@@ -57,28 +61,28 @@ class DashboardController {
                 pojo.setProjectId(project.getId());
                 pojo.setProjectName(project.getName());
                 pojo.setCustomerName(project.getCustomer());
-                Pair<JobDetail, Trigger> pair = projectScheduleRunner.getJobLike(project);
+                Pair<JobDetail, Trigger> pair = projectScheduleRunner.getJob(project);
                 if (null != pair) {
                     if ((pair.getLeft() != null) && (pair.getRight() != null)) {
-                        pojo.setLikeRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
-                        pojo.setLikeNextFire(pair.getRight().getNextFireTime());
-                        pojo.setLikeHits(projectRepository.count('L', project));
+                        pojo.setRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
+                        pojo.setNextFire(pair.getRight().getNextFireTime());
+                        pojo.setHits(projectRepository.count(project));
                     }
                 }
 
-                pair = projectScheduleRunner.getJobComment(project);
-
-                if (null != pair) {
-                    if ((pair.getLeft() != null) && (pair.getRight() != null)) {
-                        pojo.setCommentRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
-                        pojo.setCommentNextFire(pair.getRight().getNextFireTime());
-                        pojo.setCommentHits(projectRepository.count('C', project));
-                    }
-                }
-                if ((pojo.getLikeRunningTime() != null) || (pojo.getCommentRunningTime() != null))
+//                pair = projectScheduleRunner.getJobComment(project);
+//
+//                if (null != pair) {
+//                    if ((pair.getLeft() != null) && (pair.getRight() != null)) {
+//                        pojo.setCommentRunningTime(new Date(System.currentTimeMillis() - pair.getRight().getStartTime().getTime()));
+//                        pojo.setCommentNextFire(pair.getRight().getNextFireTime());
+//                        pojo.setCommentHits(projectRepository.count('C', project));
+//                    }
+//                }
+                if ((pojo.getRunningTime() != null) || (pojo.getRunningTime() != null))
                     dashboardPOJOS.add(pojo);
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                log.severe(e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -106,4 +110,41 @@ class DashboardController {
     }
 
 
+    @GetMapping("/login")
+    public String login(@RequestParam Long id) throws Exception {
+        InstaConstants instaConstants = new InstaConstants();
+        Project project = projectRepository.znajdz(id);
+        InstaUser user = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
+        instaConstants.loginInstagram(user.getInstaUserName(), instaConstants.getUserPass(user.getInstaUserName()));
+
+        return "redirect:/";
+    }
+//
+//    @PostMapping("/like")
+//    public String like(@RequestParam Long id, Principal principal) throws SchedulerException {
+//        Project project = projectRepository.znajdz(id);
+//        JobDetail jobDetail = projectScheduleRunner.getJobLike(project).getLeft();
+//
+//        projectScheduleRunner.getScheduler().triggerJob(jobDetail.getKey());
+//
+//        return principal != null ? "redirect:/" : "redirect:homeNotSignedIn";
+//    }
+//
+//    @PostMapping("/comment")
+//    public String comment(@RequestParam Long id, Principal principal) throws SchedulerException {
+//        Project project = projectRepository.znajdz(id);
+//        JobDetail jobDetail = projectScheduleRunner.getJobComment(project).getLeft();
+//
+//        projectScheduleRunner.getScheduler().triggerJob(jobDetail.getKey());
+//        return principal != null ? "redirect:/" : "redirect:homeNotSignedIn";
+//    }
+
+    @PostMapping("/firejob")
+    public String comment(@RequestParam Long id, Principal principal) throws SchedulerException {
+        Project project = projectRepository.znajdz(id);
+        JobDetail jobDetail = projectScheduleRunner.getJob(project).getLeft();
+
+        projectScheduleRunner.getScheduler().triggerJob(jobDetail.getKey());
+        return principal != null ? "redirect:/" : "redirect:homeNotSignedIn";
+    }
 }

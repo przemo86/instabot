@@ -26,13 +26,16 @@
             </p>
             <p><span th:text="#{project.hashtag.exclude}"></span> - <span th:text="${project.excludeHashtags}"></span>
             </p>
-            <p><span th:text="#{project.activity.comment}"></span> - <span
-                    th:text="${project.comment ? 'Tak' : 'Nie'}"></span><span th:if="${project.comment}"> : </span><span
-                    th:if="${project.comment}" th:text="${project.commentFrequency.frequency + '/godz'}"></span></p>
+            <!--<p><span th:text="#{project.activity.comment}"></span> - <span-->
+                    <!--th:text="${project.comment ? 'Tak' : 'Nie'}"></span><span th:if="${project.comment}"> : </span><span-->
+                    <!--th:if="${project.comment}" th:text="${project.commentFrequency.frequency + '/godz'}"></span></p>-->
             <p><span th:text="#{project.activity.like}"></span> - <span
-                    th:text="${project.like ? 'Tak' : 'Nie'}"></span> <span th:if="${project.like}"> : </span><span
+                    th:text="${project.like ? 'Tak' : 'Nie'}"></span> <span th:if="${project.like}"></span></p>
+            <p><span th:text="#{project.activity.comment}"></span> - <span
+                    th:text="${project.comment ? 'Tak' : 'Nie'}"></span> <span th:if="${project.comment}"></span></p>
+                <p><span>Częstotliwość</span> - <span
                     th:if="${project.like}" th:text="${project.likeFrequency.frequency + '/godz'}"></span></p>
-            <p><span th:text="#{project.comment}"></span> - <span th:text="${project.commentString}"></span></p>
+
 
         </div>
     </div>

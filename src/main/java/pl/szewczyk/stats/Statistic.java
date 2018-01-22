@@ -33,8 +33,6 @@ public class Statistic implements Serializable {
 
     private String excludeHashtags;
 
-    private String commentString;
-
     @Enumerated(EnumType.STRING)
     private HashtagSearchEnum hashtagSearch;
 
@@ -51,7 +49,6 @@ public class Statistic implements Serializable {
         this.time = Instant.now();
 
         this.project = project;
-        this.commentString = project.getCommentString();
         this.includeHashtags = project.getIncludeHashtags();
         this.excludeHashtags = project.getExcludeHashtags();
         this.hashtagSearch = project.getHashtagSearch();
@@ -98,14 +95,6 @@ public class Statistic implements Serializable {
         this.excludeHashtags = excludeHashtags;
     }
 
-    public String getCommentString() {
-        return commentString;
-    }
-
-    public void setCommentString(String commentString) {
-        this.commentString = commentString;
-    }
-
     public HashtagSearchEnum getHashtagSearch() {
         return hashtagSearch;
     }
@@ -138,7 +127,6 @@ public class Statistic implements Serializable {
                 ", time=" + time +
                 ", includeHashtags='" + includeHashtags + '\'' +
                 ", excludeHashtags='" + excludeHashtags + '\'' +
-                ", commentString='" + commentString + '\'' +
                 ", hashtagSearch=" + hashtagSearch +
                 ", kind=" + kind +
                 ", media=" + media +

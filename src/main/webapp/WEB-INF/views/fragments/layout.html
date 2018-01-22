@@ -25,9 +25,10 @@
     <script src="../../../resources/js/moment.min.js" th:src="@{/resources/js/moment.min.js}"></script>
     <script src="../../../resources/js/Chart.min.js" th:src="@{/resources/js/Chart.min.js}"></script>
     <script src="../../../resources/js/Chart.bundle.min.js" th:src="@{/resources/js/Chart.bundle.min.js}"></script>
-
     <meta name="_csrf" th:content="${_csrf.token}"/>
+    <!-- default header name is X-CSRF-TOKEN -->
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <!-- ... -->
 </head>
 <body>
 
@@ -69,7 +70,7 @@
                     <span class="fa fa-sliders" aria-hidden="true">&nbsp;&nbsp;</span><span
                         th:text="#{navigation.settings}"></span>
                 </a>
-            </li>z
+            </li>
 
 
             <!--<li>-->

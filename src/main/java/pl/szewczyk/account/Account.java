@@ -33,7 +33,7 @@ public class Account implements java.io.Serializable {
 
 	private boolean locked = false;
 
-	@ManyToMany(cascade = CascadeType.ALL)
+	@ManyToMany
 	private Set<InstaUser> instaUsers = new HashSet<>();
 
     protected Account() {

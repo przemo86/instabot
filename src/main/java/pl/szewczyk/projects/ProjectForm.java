@@ -1,45 +1,46 @@
 package pl.szewczyk.projects;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.time.Instant;
-import java.util.logging.Logger;
+import org.springframework.web.multipart.MultipartFile;
 
-@LikeCorrect
-@CommentCorrect
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class ProjectForm implements java.io.Serializable {
 
-    @Size(min = 1, max = 40, message = "pole nie może być puste")
     private String name;
 
-    @Size(min = 1, max = 40, message = "pole nie może być puste")
     private String customer;
 
-    @Size(min = 1, max = 25, message = "Nie wybrano konta instagram")
     private String instagramAccount;
 
     private boolean status = false;
 
-    @Size(min = 1, message = "Podaj hashtagi występujące")
     private String includeHashtags;
 
     private String excludeHashtags;
 
-    private String commentString;
+    private List<CommentForm> comments = new ArrayList<>();
 
-    @NotNull(message = "Wybierz częstotliwość lajków")
     private FrequencyEnum likeFrequency;
 
-    @NotNull(message = "Wybierz częstotliwość komentarzy")
     private FrequencyEnum commentFrequency;
 
-    @NotNull(message = "Wybierz rodzaj poszukiwania hashtagów")
     private HashtagSearchEnum hashtagSearch;
 
     private boolean like;
 
     private boolean comment;
+    private String blackFileName;
 
+    private String locationName;
+    private String locationId;
+    private Integer mediaAge;
+    private boolean onlineStats;
+
+    private MultipartFile file;
 
     public ProjectForm(Project project) {
         this.name = project.getName();
@@ -48,35 +49,47 @@ public class ProjectForm implements java.io.Serializable {
         this.status = project.isStatus();
         this.includeHashtags = project.getIncludeHashtags();
         this.excludeHashtags = project.getExcludeHashtags();
-        this.commentString = project.getCommentString();
+        this.comments = project.getComments().stream().map(c -> CommentForm.fromEntity(c)).collect(Collectors.toList());
+            project.getComments().stream().forEach(c -> c.setProject(project));
         this.likeFrequency = project.getLikeFrequency();
-        this.commentFrequency = project.getCommentFrequency();
+//        this.commentFrequency = project.getCommentFrequency();
         this.hashtagSearch = project.getHashtagSearch();
         this.like = project.isLike();
         this.comment = project.isComment();
-
+        this.blackFileName = project.getBlackFileName();
+        this.locationName = project.getLocationName();
+        this.locationId = project.getLocationId();
+        this.mediaAge = project.getMediaAge();
+        this.onlineStats = project.isOnlineStats();
     }
 
     public ProjectForm() {
     }
 
     public Project toEntity(Project project) {
-        Logger.getGlobal().severe("IN");
-        Logger.getGlobal().severe(includeHashtags);
-        Logger.getGlobal().severe(excludeHashtags);
-
+        System.out.println("FILE??? " + this.file);
         project.setName(this.name);
         project.setCustomer(this.customer);
         project.setInstagramAccount(this.instagramAccount);
         project.setStatus(this.status);
         project.setIncludeHashtags(this.includeHashtags);
         project.setExcludeHashtags(this.excludeHashtags);
-        project.setCommentString(this.commentString);
+//        project.setComments(this.comments.stream().map(c -> c.toEntity()).collect(Collectors.toList()));
         project.setLikeFrequency(this.likeFrequency);
-        project.setCommentFrequency(this.commentFrequency);
+//        project.setCommentFrequency(this.commentFrequency);
         project.setHashtagSearch(this.hashtagSearch);
         project.setLike(this.like);
         project.setComment(this.comment);
+        project.setLocationName(this.locationName);
+        project.setLocationId(this.locationId);
+        project.setMediaAge(this.mediaAge);
+        project.setOnlineStats(this.onlineStats);
+        try {
+            project.setBlacklisted(new String(this.file.getBytes()));
+            project.setBlackFileName(this.file.getOriginalFilename());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (project.getId() == null)
             project.setCreated(Instant.now());
         return project;
@@ -123,12 +136,12 @@ public class ProjectForm implements java.io.Serializable {
         this.excludeHashtags = excludeHashtags;
     }
 
-    public String getCommentString() {
-        return commentString;
+    public List<CommentForm> getComments() {
+        return comments;
     }
 
-    public void setCommentString(String commentString) {
-        this.commentString = commentString;
+    public void setComments(List<CommentForm> comments) {
+        this.comments = comments;
     }
 
     public FrequencyEnum getLikeFrequency() {
@@ -179,6 +192,54 @@ public class ProjectForm implements java.io.Serializable {
         this.instagramAccount = instagramAccount;
     }
 
+    public String getBlackFileName() {
+        return blackFileName;
+    }
+
+    public void setBlackFileName(String blackFileName) {
+        this.blackFileName = blackFileName;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
+    }
+
+    public String getLocationId() {
+        return locationId;
+    }
+
+    public void setLocationId(String locationId) {
+        this.locationId = locationId;
+    }
+
+    public MultipartFile getFile() {
+        return file;
+    }
+
+    public void setFile(MultipartFile file) {
+        this.file = file;
+    }
+
+    public Integer getMediaAge() {
+        return mediaAge;
+    }
+
+    public void setMediaAge(Integer mediaAge) {
+        this.mediaAge = mediaAge;
+    }
+
+    public boolean isOnlineStats() {
+        return onlineStats;
+    }
+
+    public void setOnlineStats(boolean onlineStats) {
+        this.onlineStats = onlineStats;
+    }
+
     @Override
     public String toString() {
         return "ProjectForm{" +
@@ -188,7 +249,7 @@ public class ProjectForm implements java.io.Serializable {
                 ", status=" + status +
                 ", includeHashtags='" + includeHashtags + '\'' +
                 ", excludeHashtags='" + excludeHashtags + '\'' +
-                ", commentString='" + commentString + '\'' +
+                ", comments='" + comments + '\'' +
                 ", likeFrequency=" + likeFrequency +
                 ", commentFrequency=" + commentFrequency +
                 ", hashtagSearch=" + hashtagSearch +

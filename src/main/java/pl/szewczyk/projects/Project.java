@@ -4,6 +4,8 @@ import pl.szewczyk.account.Account;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("serial")
 @Entity
@@ -34,13 +36,14 @@ public class Project implements java.io.Serializable {
 
     private String excludeHashtags;
 
-    private String commentString;
+    @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
+    private List<Comment> comments = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private FrequencyEnum likeFrequency;
 
-    @Enumerated(EnumType.STRING)
-    private FrequencyEnum commentFrequency;
+//    @Enumerated(EnumType.STRING)
+//    private FrequencyEnum commentFrequency;
 
     @Enumerated(EnumType.STRING)
     private HashtagSearchEnum hashtagSearch;
@@ -50,6 +53,19 @@ public class Project implements java.io.Serializable {
 
     @Column(name = "_comment")
     private boolean comment;
+
+    private String blackFileName;
+
+    @Column(columnDefinition = "blacklisted text")
+    private String blacklisted;
+
+    private boolean onlineStats = true;
+
+    private String locationName;
+
+    private String locationId;
+
+    private Integer mediaAge;
 
     protected Project() {
 
@@ -115,12 +131,12 @@ public class Project implements java.io.Serializable {
         this.excludeHashtags = excludeHashtags;
     }
 
-    public String getCommentString() {
-        return commentString;
+    public List<Comment> getComments() {
+        return comments;
     }
 
-    public void setCommentString(String commentString) {
-        this.commentString = commentString;
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
     public FrequencyEnum getLikeFrequency() {
@@ -131,13 +147,13 @@ public class Project implements java.io.Serializable {
         this.likeFrequency = likeFrequency;
     }
 
-    public FrequencyEnum getCommentFrequency() {
-        return commentFrequency;
-    }
+//    public FrequencyEnum getCommentFrequency() {
+//        return commentFrequency;
+//    }
 
-    public void setCommentFrequency(FrequencyEnum commentFrequency) {
-        this.commentFrequency = commentFrequency;
-    }
+//    public void setCommentFrequency(FrequencyEnum commentFrequency) {
+//        this.commentFrequency = commentFrequency;
+//    }
 
     public HashtagSearchEnum getHashtagSearch() {
         return hashtagSearch;
@@ -177,5 +193,77 @@ public class Project implements java.io.Serializable {
 
     public void setOwner(Account owner) {
         this.owner = owner;
+    }
+
+    public String getBlackFileName() {
+        return blackFileName;
+    }
+
+    public void setBlackFileName(String blackFileName) {
+        this.blackFileName = blackFileName;
+    }
+
+    public String getBlacklisted() {
+        return blacklisted;
+    }
+
+    public void setBlacklisted(String blacklisted) {
+        this.blacklisted = blacklisted;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
+    }
+
+    public String getLocationId() {
+        return locationId;
+    }
+
+    public void setLocationId(String locationId) {
+        this.locationId = locationId;
+    }
+
+    public Integer getMediaAge() {
+        return mediaAge;
+    }
+
+    public void setMediaAge(Integer mediaAge) {
+        this.mediaAge = mediaAge;
+    }
+
+    public boolean isOnlineStats() {
+        return onlineStats;
+    }
+
+    public void setOnlineStats(boolean onlineStats) {
+        this.onlineStats = onlineStats;
+    }
+
+    public String getRandomComment() {
+        if (comments.size() == 0)
+            return "";
+
+        System.out.println("R 1");
+        int sum = comments.stream().mapToInt(c -> c.getPriority()).sum();
+        System.out.println("R " + sum);
+        Double rand = ((Math.random() * sum) + 1);
+        System.out.println("R " + rand);
+
+        int rSum = 0;
+        for (Comment c : comments) {
+        System.out.println("R " + c);
+            rSum += c.getPriority();
+            if (rSum <= rand) {
+                System.out.println("RET " + c);
+                return c.getComment();
+            }
+        }
+        rand = (Math.random() * comments.size());
+        System.out.println("RETTT " + rand);
+        return comments.get(rand.intValue()).getComment();
     }
 }

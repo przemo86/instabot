@@ -1,8 +1,11 @@
 package me.postaddict.instagram.scraper.domain;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class Account {
+
+    private static Logger log = Logger.getLogger(Account.class.getName());
 
     public String username;
     public int followsCount;
@@ -19,15 +22,10 @@ public class Account {
     public static Account fromAccountPage(Map userJson) {
         Account instance = new Account();
         instance.username = (String) userJson.get("username");
-        System.out.println(instance.username);
         instance.followsCount = ((Double) (((Map) (userJson.get("follows"))).get("count"))).intValue();
-        System.out.println(instance.followsCount);
         instance.followedByCount = ((Double) (((Map) (userJson.get("followed_by"))).get("count"))).intValue();
-        System.out.println(instance.followedByCount);
         instance.profilePicUrl = (String) userJson.get("profile_pic_url");
-        System.out.println(instance.profilePicUrl);
         instance.id = Long.parseLong((String) userJson.get("id"));
-        System.out.println(instance.id);
         instance.biography = (String) userJson.get("biography");
         instance.fullName = (String) userJson.get("full_name");
         instance.mediaCount = ((Double) (((Map) (userJson.get("media"))).get("count"))).intValue();

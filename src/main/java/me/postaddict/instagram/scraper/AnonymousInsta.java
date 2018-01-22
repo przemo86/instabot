@@ -11,7 +11,7 @@ public interface AnonymousInsta extends StatelessInsta {
 
     List<Media> getLocationMediasById(String locationId, int count) throws IOException;
 
-    List<Media> getMediasByTag(String tag, int count) throws IOException;
+    List<Media> getMediasByTag(String tag, int count, String lastCode) throws IOException;
 
     List<Media> getTopMediasByTag(String tag) throws IOException;
     List<Comment> getCommentsByMediaCode(String code, int count) throws IOException;

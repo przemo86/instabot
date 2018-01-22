@@ -23,6 +23,20 @@ public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServlet
     protected Class<?>[] getServletConfigClasses() {
         return null;
     }
+//
+//    @Override
+//    public void onStartup(ServletContext servletContext) throws ServletException {
+//        super.onStartup(servletContext);
+//        ServletRegistration.Dynamic appServlet = servletContext.addServlet("mvc", new DispatcherServlet(
+//                new GenericWebApplicationContext()));
+//
+//        appServlet.setLoadOnStartup(1);
+//
+//        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getenv("TEMP"),
+//                4096000, 4096000 * 2, 4096000 / 2);
+//
+//        appServlet.setMultipartConfig(multipartConfigElement);
+//    }
 
     @Override
     protected Filter[] getServletFilters() {
@@ -41,4 +55,6 @@ public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServlet
         registration.setInitParameter("spring.profiles.active", "default");
 
     }
+
+
 }

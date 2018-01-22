@@ -1,12 +1,11 @@
 package me.postaddict.instagram.scraper.domain;
 
+import java.util.Date;
 import java.util.Map;
-
-import static me.postaddict.instagram.scraper.domain.Media.INSTAGRAM_BORN_YEAR;
 
 public class Comment {
     public String text;
-    public Long createdAt;
+    public Date createdAt;
     public String id;
 
     public Account user;
@@ -19,17 +18,14 @@ public class Comment {
         instance.text = (String) commentMap.get("text");
 
         try {
-            instance.createdAt = (long) (0d + (Double) commentMap.get("created_at"));
+            instance.createdAt = new Date((long) (0d + (Double) commentMap.get("created_at")* 1000));
         } catch (NullPointerException e) {
             Object time = commentMap.get("created_time");
             if (time instanceof String) {
-                instance.createdAt = new Long((String) time);
+                instance.createdAt = new Date(new Long((String) time)* 1000);
             } else if (time instanceof Double) {
-                instance.createdAt = ((Double) time).longValue();
+                instance.createdAt = new Date(((Double) time).longValue()* 1000);
             }
-        }
-        if(instance.createdAt > 0 && instance.createdAt < INSTAGRAM_BORN_YEAR){
-            instance.createdAt = instance.createdAt * 1000;
         }
 
         instance.id = (String) commentMap.get("id");

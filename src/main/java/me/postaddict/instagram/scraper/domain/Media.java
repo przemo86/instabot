@@ -5,6 +5,7 @@ import me.postaddict.instagram.scraper.Endpoint;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -33,6 +34,12 @@ public class Media {
     public String ownerId;
     public Account owner;
     public String locationName;
+    public String locationId;
+
+    public Date action_time;
+    public Boolean liked = false;
+    public Boolean commented = false;
+    public String myComment;
 
 
     public static class CarouselMedia {
@@ -77,7 +84,7 @@ public class Media {
     public static Media fromApi(Map mediaMap) {
         Media instance = new Media();
         instance.id = (String) mediaMap.get("id");
-        instance.createdTime = Long.parseLong((String) mediaMap.get("created_time"));
+        instance.createdTime = Long.parseLong((String) mediaMap.get("taken_at_timestamp"));
         fixDate(instance);
         instance.type = (String) mediaMap.get("type");
         instance.link = (String) mediaMap.get("link");
@@ -129,6 +136,9 @@ public class Media {
             if (location.containsKey("name")) {
                 instance.locationName = (String) location.get("name");
             }
+            if (location.containsKey("id")) {
+                instance.locationId = (String) location.get("id");
+            }
         }
         return instance;
     }
@@ -174,6 +184,15 @@ public class Media {
         instance.link = INSTAGRAM_URL + "p/" + instance.shortcode;
         instance.commentsCount = ((Double) ((Map) pageMap.get("edge_media_to_comment")).get("count")).intValue();
         instance.likesCount = ((Double) ((Map) pageMap.get("edge_media_preview_like")).get("count")).intValue();
+        if (pageMap.containsKey("location") && pageMap.get("location") != null) {
+            Map location = (Map) pageMap.get("location");
+            if (location.containsKey("name")) {
+                instance.locationName = (String) location.get("name");
+            }
+            if (location.containsKey("id")) {
+                instance.locationId = (String) location.get("id");
+            }
+        }
         fillImageUrls(instance, (String) pageMap.get("display_url"));
         String caption = (String) ((Map) ((Map) ((List) ((Map) pageMap.get("edge_media_to_caption")).get("edges")).get(0)).get("node")).get("text");
         if (caption != null) {
@@ -183,23 +202,51 @@ public class Media {
         return instance;
     }
 
-    public static Media fromTagPage(Map mediaMap) {
+    public static Media fromLocationPage(Map mediaMap) {
         Media instance = new Media();
         instance.shortcode = (String) mediaMap.get("code");
         instance.link = Endpoint.getMediaPageLinkByCode(instance.shortcode);
         instance.commentsCount = ((Double) ((Map) mediaMap.get("comments")).get("count")).intValue();
         instance.likesCount = ((Double) ((Map) mediaMap.get("likes")).get("count")).intValue();
         instance.ownerId = (String) ((Map) mediaMap.get("owner")).get("id");
-        if (mediaMap.get("caption") != null) {
+        try {
             instance.caption = (String) mediaMap.get("caption");
+        } catch (Exception e) {
+            instance.caption = "";
         }
+
         instance.createdTime = ((Double) mediaMap.get("date")).longValue();
         fixDate(instance);
-        fillImageUrls(instance, (String) mediaMap.get("display_src"));
+        fillImageUrls(instance, (String) ((Map) ((List) mediaMap.get("thumbnail_resources")).get(0)).get("src"));
         instance.type = TYPE_IMAGE;
         if ((Boolean) mediaMap.get("is_video")) {
             instance.type = TYPE_VIDEO;
-            instance.videoViews = ((Double) mediaMap.get("video_views")).intValue();
+        }
+
+        instance.id = (String) mediaMap.get("id");
+        return instance;
+    }
+
+    public static Media fromTagPage(Map mediaMap) {
+        Media instance = new Media();
+        instance.shortcode = (String) mediaMap.get("shortcode");
+        instance.link = Endpoint.getMediaPageLinkByCode(instance.shortcode);
+        instance.commentsCount = ((Double) ((Map) mediaMap.get("edge_media_to_comment")).get("count")).intValue();
+        instance.likesCount = ((Double) ((Map) mediaMap.get("edge_liked_by")).get("count")).intValue();
+        instance.ownerId = (String) ((Map) mediaMap.get("owner")).get("id");
+        try {
+            instance.caption = (String) ((Map) ((Map) ((List) ((Map) mediaMap.get("edge_media_to_caption")).get("edges")).get(0)).get("node")).get("text");
+        } catch (Exception e) {
+            instance.caption = "";
+        }
+
+        instance.createdTime = ((Double) mediaMap.get("taken_at_timestamp")).longValue();
+        fixDate(instance);
+        fillImageUrls(instance, (String) ((Map) ((List) mediaMap.get("thumbnail_resources")).get(0)).get("src"));
+        instance.type = TYPE_IMAGE;
+        if ((Boolean) mediaMap.get("is_video")) {
+            instance.type = TYPE_VIDEO;
+            instance.videoViews = ((Double) mediaMap.get("video_view_count")).intValue();
         }
         if (mediaMap.containsKey("carousel_media")) {
             instance.type = TYPE_CAROUSEL;
@@ -306,13 +353,31 @@ public class Media {
     }
 
     public List<String> getTags() {
-        Pattern MY_PATTERN = Pattern.compile("#([^\\r\\n\\t\\f\\v# ]+)");
-        Matcher mat = MY_PATTERN.matcher(caption);
         List<String> strs = new ArrayList<String>();
-        while (mat.find()) {
-            strs.add(mat.group(1));
-        }
+        try {
+            Pattern MY_PATTERN = Pattern.compile("#([^\\r\\n\\t\\f\\v# ]+)");
+            Matcher mat = MY_PATTERN.matcher(caption);
+            while (mat.find()) {
+                strs.add(mat.group(1));
+            }
+        } catch (NullPointerException e) {
 
+        }
         return strs;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Media media = (Media) o;
+
+        return link != null ? link.equals(media.link) : media.link == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return link != null ? link.hashCode() : 0;
     }
 }

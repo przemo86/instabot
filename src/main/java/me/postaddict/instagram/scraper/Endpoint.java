@@ -11,12 +11,15 @@ public abstract class Endpoint {
     public static final String ACCOUNT_JSON_INFO = "https://www.instagram.com/{{username}}/?__a=1";
     public static final String TAG_JSON_INFO = "https://www.instagram.com/explore/tags/{{tag_name}}/?__a=1";
     public static final String MEDIA_JSON_INFO = "https://www.instagram.com/p/{{code}}/?__a=1";
+    public static final String MEDIA_LIKE_INFO = "https://www.instagram.com/graphql/query/?query_id=17864450716183058&variables=%7B\"shortcode\"%3A\"{{code}}\"%2C\"first\"%3A9999%7D";
     public static final String MEDIA_JSON_BY_LOCATION_ID = "https://www.instagram.com/explore/locations/{{facebookLocationId}}/?__a=1&max_id={{maxId}}";
     public static final String MEDIA_JSON_BY_TAG = "https://www.instagram.com/explore/tags/{{tag}}/?__a=1&max_id={{maxId}}";
     public static final String GENERAL_SEARCH = "https://www.instagram.com/web/search/topsearch/?query={{query}}";
+    public static final String LOCATION_SEARCH = "https://www.instagram.com/web/search/topsearch/?context=place&query={{query}}";
     public static final String ACCOUNT_JSON_INFO_BY_ID = "https://www.instagram.com/graphql/query/?query_id=17863787143139595&id={{userId}}&first=1";
     public static final String LAST_COMMENTS_BY_CODE = "ig_shortcode({{code}}){comments.last({{count}}){count,nodes{id,created_at,text,user{id,profile_pic_url,username,follows{count},followed_by{count},biography,full_name,media{count},is_private,external_url,is_verified}},page_info}}";
-    public static final String COMMENTS_BEFORE_COMMENT_ID_BY_CODE = "https://www.instagram.com/graphql/query/?query_id=17852405266163336&shortcode={{shortcode}}&first={{count}}&after={{commentId}}";
+//    public static final String COMMENTS_BEFORE_COMMENT_ID_BY_CODE = "https://www.instagram.com/graphql/query/?query_id=17852405266163336&shortcode={{shortcode}}&first={{count}}&after={{commentId}}";
+    public static final String COMMENTS_BEFORE_COMMENT_ID_BY_CODE = "https://www.instagram.com/graphql/query/?query_id=17852405266163336&shortcode={{shortcode}}&first={{count}}";
     public static final String MEDIA_LIKE = "https://www.instagram.com/web/likes/{{mediaId}}/like/";
     public static final String MEDIA_UNLIKE = "https://www.instagram.com/web/likes/{{mediaId}}/unlike/";
     public static final String MEDIA_COMMENTS_ADD = "https://www.instagram.com/web/comments/{{mediaId}}/add/";
@@ -57,6 +60,10 @@ public abstract class Endpoint {
         return MEDIA_JSON_INFO.replace("{{code}}", shortcode);
     }
 
+    public static String getMediaLikesByShortcode(String shortcode) {
+        return MEDIA_LIKE_INFO.replace("{{code}}", shortcode);
+    }
+
     public static String getMediasJsonByLocationIdLink(String facebookLocationId, String maxId) {
         if (maxId == null) {
             maxId = "";
@@ -74,6 +81,9 @@ public abstract class Endpoint {
     public static String getGeneralSearchJsonLink(String query) {
         return GENERAL_SEARCH.replace("{{query}}", query);
     }
+    public static String getLocationSearchJsonLink(String query) {
+        return LOCATION_SEARCH.replace("{{query}}", query);
+    }
 
     public static String getLastCommentsByCodeLink(String code, int count) {
         return LAST_COMMENTS_BY_CODE
@@ -81,11 +91,10 @@ public abstract class Endpoint {
                 .replace("{{count}}", "" + count);
     }
 
-    public static String getCommentsBeforeCommentIdByCode(String shortcode, int count, String commentId) {
+    public static String getCommentsBeforeCommentIdByCode(String shortcode, int count) {
         return COMMENTS_BEFORE_COMMENT_ID_BY_CODE
                 .replace("{{shortcode}}", shortcode)
-                .replace("{{count}}", "" + count)
-                .replace("{{commentId}}", commentId);
+                .replace("{{count}}", "" + count);
     }
 
     public static String getMediaLikeLink(String mediaId) {

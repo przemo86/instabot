@@ -417,3 +417,7 @@ div.project-setting-row div.row{
     background-color: #0090D9;
     background-image: none;
 }
+
+.error {
+    border: #FF0000 1px solid;
+}

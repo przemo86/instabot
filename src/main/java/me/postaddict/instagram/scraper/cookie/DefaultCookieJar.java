@@ -7,8 +7,11 @@ import okhttp3.HttpUrl;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class DefaultCookieJar implements CookieJar {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     private CookieCache cache;
 
@@ -40,13 +43,6 @@ public class DefaultCookieJar implements CookieJar {
             Cookie cookie = it.next();
             if (cookie.name().equals(name))
                 it.remove();
-        }
-    }
-
-    synchronized public void print() {
-        for (Iterator<Cookie> it = cache.iterator(); it.hasNext(); ) {
-            Cookie cookie = it.next();
-            System.out.println("cookie " + cookie);
         }
     }
 

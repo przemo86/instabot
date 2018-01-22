@@ -10,7 +10,6 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.logging.Logger;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -30,7 +29,7 @@ public @interface PasswordCorrect {
 @Component
 class PasswordCorrectValidator implements ConstraintValidator<PasswordCorrect, Object> {
 
-    Logger logger = Logger.getLogger(PasswordCorrectValidator.class.getName());
+
 
     public PasswordCorrectValidator() {
 
@@ -38,19 +37,13 @@ class PasswordCorrectValidator implements ConstraintValidator<PasswordCorrect, O
 
     @Override
     public void initialize(PasswordCorrect passwordCorrect) {
-        logger.severe("initialize");
+
     }
 
     @Override
     public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
-        logger.severe("valid?");
         UserForm account = (UserForm) o;
-        if (account.getPassword().equals(account.getRepeatPassword())) {
-            logger.severe("VALID");
-            return true;
-        }
-        logger.severe("INVALID");
-        return false;
+        return account.getPassword().equals(account.getRepeatPassword());
     }
 
 

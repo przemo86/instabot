@@ -7,9 +7,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 @PasswordCorrect(message = "{user.password.confirm.error}")
 public class UserForm {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     private static final String NOT_BLANK_MESSAGE = "{notBlank.message}";
     private static final String EMAIL_MESSAGE = "{email.message}";
@@ -100,7 +103,7 @@ public class UserForm {
     }
 
     public UserForm(){
-        System.out.println("CONSTRUCT");
+        log.info("CONSTRUCT");
     }
 
     public UserForm(Account account) {

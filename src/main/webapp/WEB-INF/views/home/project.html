@@ -30,6 +30,10 @@
     <script src="../../../resources/js/bootstrap.min.js"
             th:src="@{/resources/js/bootstrap.min.js}"></script>
 
+
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
 </head>
 <body>
 <div class="wrapper">
@@ -40,7 +44,9 @@
             <p class="lead text-left site-title">
                 <span th:text="#{${projectForm.name == null ? 'project.add' : 'project.edit'}}"></span>
             </p>
-            <form class="form-narrow form-horizontal project-form" method="post" th:action="@{/project}"
+            <form class="form-narrow form-horizontal project-form" method="post"
+                  enctype="multipart/form-data"
+                  th:action="@{/project(${_csrf.parameterName}=${_csrf.token})}"
                   th:object="${projectForm}"
                   th:fragment="projectForm">
                 <div class="row">
@@ -60,6 +66,15 @@
                                       th:text="#{project.error.status}"></span>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label for="customer" class="col-lg-4 control-label"
+                                   th:text="#{project.customer}"></label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" id="customer" th:field="*{customer}"/>
+                                <span class="help-block" th:if="${#fields.hasErrors('customer')}"
+                                      th:errors="*{customer}" th:text="#{project.error.customer}"></span>
+                            </div>
+                        </div>
 
                         <div class="form-group row">
                             <label for="projectName" class="col-lg-4 control-label"
@@ -71,15 +86,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="customer" class="col-lg-4 control-label"
-                                   th:text="#{project.customer}"></label>
-                            <div class="col-lg-8">
-                                <input type="text" class="form-control" id="customer" th:field="*{customer}"/>
-                                <span class="help-block" th:if="${#fields.hasErrors('customer')}"
-                                      th:errors="*{customer}" th:text="#{project.error.customer}"></span>
-                            </div>
-                        </div>
 
                         <div class="form-group row">
                             <label for="include-hashtag" class="col-lg-4 control-label"
@@ -113,6 +119,40 @@
                                 </select>
                             </div>
                         </div>
+
+
+                        <div class="form-group row">
+                            <label for="istagram-blackfile" class="col-lg-4 control-label">Czarna lista wyrazów</label>
+                            <div class="col-lg-8">
+                                <input type="file" name="file" class="form-control" id="istagram-blackfile"
+                                       th:field="*{file}" th:text="${projectForm.blackFileName}"
+                                       style="height: unset;">
+
+                                </input>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="istagram-location" class="col-lg-4 control-label">Lokalizacja</label>
+                            <div class="col-lg-8">
+                                <input id="istagram-location" class="form-control autocomplete"
+                                       placeholder="Lokalizacja" th:field="*{locationName}"/>
+                                <input id="istagram-location-id" type="hidden" th:field="*{locationId}"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="media-age" class="col-lg-4 control-label">Nie starsze niż</label>
+                            <div class="col-lg-8">
+                                <select class="form-control" id="media-age" th:field="*{mediaAge}">
+                                    <option th:text="#{project.instagram.account.choose}" value=""></option>
+                                    <option value="1">godzina</option>
+                                    <option value="24">24 godziny</option>
+                                    <option value="168">tydzień</option>
+                                    <option value="720">miesiąc</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
 
@@ -123,13 +163,15 @@
                             </p>
 
                             <div class="form-group row">
-                                <label for="comment" class="col-lg-4 control-label"
+                                <label class="col-lg-4 control-label"
                                        th:text="#{project.comment}"></label>
                                 <div class="col-lg-8">
-                        <textarea class="form-control" id="comment" th:placeholder="#{project.comment.placeholder}"
-                                  th:field="*{commentString}">
+                                    <div id="resultsBlock">
 
-                        </textarea>
+                                    </div>
+                                    <textarea placeholder="Treść komentarza" id="tresc"></textarea>
+                                    <input type="number" placeholder="Priorytet" min="1" max="10" id="priority">
+                                    <input type="button" value="Dodaj" id="dodaj_komentarz">
                                 </div>
                             </div>
 
@@ -144,18 +186,19 @@
                                     </select>
                                 </div>
                             </div>
-                            <div clas="row">
-                                <label for="comment-frequency" class="col-lg-4 control-label"
-                                       th:text="#{project.frequency.comment}"></label>
-                                <div class="col-lg-8">
-                                    <select class="form-control" id="comment-frequency" th:field="*{commentFrequency}">
-                                        <option th:text="#{project.instagram.account.choose}" value=""></option>
-                                        <option th:each="freq : ${T(pl.szewczyk.projects.FrequencyEnum).values()}"
-                                                th:text="${freq.frequency} + ' / godz'" th:value="${freq}"></option>
+                            <!--<div clas="row">-->
+                            <!--<label for="comment-frequency" class="col-lg-4 control-label"-->
+                            <!--th:text="#{project.frequency.comment}"></label>-->
+                            <!--<div class="col-lg-8">-->
+                            <!--<select class="form-control" id="comment-frequency" th:field="*{commentFrequency}"-->
+                            <!--th:disabled="${!projectForm.comment}">-->
+                            <!--<option th:text="#{project.instagram.account.choose}" value=""></option>-->
+                            <!--<option th:each="freq : ${T(pl.szewczyk.projects.FrequencyEnum).values()}"-->
+                            <!--th:text="${freq.frequency} + ' / godz'" th:value="${freq}"></option>-->
 
-                                    </select>
-                                </div>
-                            </div>
+                            <!--</select>-->
+                            <!--</div>-->
+                            <!--</div>-->
                         </div>
                         <div class="row project-setting-row input-border">
                             <div class="row">
@@ -183,12 +226,14 @@
 
 
                                     <div class="row setting-control">
-                                        <input type="checkbox" th:text="#{project.activity.like}"
-                                               th:field="*{like}"/>
-                                    </div>
-                                    <div class="row setting-control">
                                         <input type="checkbox" th:text="#{project.activity.comment}"
                                                th:field="*{comment}"/>
+                                    </div>
+
+                                    <div class="row setting-control">
+                                        <input type="checkbox" th:text="#{project.activity.like}"
+                                               onchange="$('#like-frequency').prop('disabled', !this.checked)"
+                                               th:field="*{like}"/>
                                     </div>
 
                                 </div>
@@ -197,10 +242,38 @@
 
 
                         </div>
+                        <br/>
+                        <br/>
+                        <div class="row project-setting-row input-border">
 
+
+
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <p class="lead text-left">
+                                        <span>Statystyki</span>
+                                    </p>
+                                </div>
+                            </div>
+
+
+
+                            <div class="form-group row">
+
+                                <div class="col-lg-6">
+                                    <label class="row"><input type="checkbox" th:field="*{onlineStats}"> Pobieraj aktualne
+                                        dane przy przeglądaniu statystyk</label>
+                                </div>
+                            </div>
+
+
+
+
+                        </div>
 
                     </div>
                 </div>
+                <br/>
                 <div class="row">
                     <div class="col-lg-4"></div>
                     <div class="col-lg-2">
@@ -220,6 +293,91 @@
     $('#include-hashtag').tokenfield({beautify: true});
     $('#exclude-hashtag').tokenfield();
     $('#projectActive').bootstrapSwitch({'onColor': 'scaleefect', 'inverse': true});
+
+
+    $(".autocomplete").autocomplete({
+
+        source: function (request, response) {
+            var loc = $('#istagram-location').val();
+            $.ajax({
+                url: '/location',
+                type: 'GET',
+                data: {
+                    "search": loc
+                },
+                success: function (data) {
+                    response($.map(data, function (item) {
+                        return {
+                            label: item.name + ' (' + item.address + ')',
+                            value: item.facebookPlacesId
+                        }
+                    }))
+                }
+            });
+        },
+        minLength: 3,
+        select: function (event, ui) {
+            event.preventDefault();
+            $('#istagram-location').val(ui.item.label.split('###')[0]);
+            $('#istagram-location-id').val(ui.item.value);
+        }
+
+    });
+
+
+    $('#dodaj_komentarz').on('click', (function () {
+        var komentarz = $('#tresc').val();
+        var priorytet = $('#priority').val();
+        $('#tresc').prop("classList").remove('error');
+        $('#priority').prop("classList").remove('error');
+
+        if (komentarz.trim() == '') {
+            $('#tresc').prop("classList").add('error');
+
+            return false;
+        }
+
+        if (!$.isNumeric(priorytet)) {
+            $('#priority').prop("classList").add('error');
+
+            return false;
+        }
+
+
+        $.ajax({
+            url: '/addcomment',
+            type: 'POST',
+            headers: {'X-CSRF-TOKEN': $('input[name="_csrf"]').val()},
+            data: {
+                "comment": komentarz,
+                "priority": priorytet
+            },
+            success: function (data) {
+                $('#tresc').val('');
+                $('#priority').val('');
+                $("#resultsBlock").html(data);
+            }
+        });
+    }));
+
+    function removeComment(index) {
+        $.ajax({
+            url: '/deletecomment',
+            headers: {'X-CSRF-TOKEN': $('input[name="_csrf"]').val()},
+            type: 'POST',
+            data: {
+                "index": index
+            },
+            success: function (data) {
+                $('#tresc').val('');
+                $('#priority').val('');
+                $("#resultsBlock").html(data);
+            }
+        });
+
+    }
+
+    $("#resultsBlock").load("/comments");
 </script>
 
 </body>

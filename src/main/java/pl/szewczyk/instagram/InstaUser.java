@@ -31,6 +31,9 @@ public class InstaUser implements Serializable {
 
     private boolean business;
 
+    private String proxyHost;
+    private String proxyPort;
+
     public Long getId() {
         return id;
     }
@@ -101,6 +104,22 @@ public class InstaUser implements Serializable {
 
     public void setPassword(byte[] password) {
         this.password = password;
+    }
+
+    public String getProxyHost() {
+        return proxyHost;
+    }
+
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public String getProxyPort() {
+        return proxyPort;
+    }
+
+    public void setProxyPort(String proxyPort) {
+        this.proxyPort = proxyPort;
     }
 
     @Override

@@ -4,6 +4,7 @@ package pl.szewczyk.projects;
  * Created by przem on 12.09.2017.
  */
 public enum FrequencyEnum {
+    _1(1),
     _5(5),
     _10(10),
     _15(15),

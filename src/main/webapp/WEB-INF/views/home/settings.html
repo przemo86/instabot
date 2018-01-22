@@ -16,8 +16,80 @@
                 Ustawienia
             </p>
         </div>
+
+        <th:block th:if="${message != null}">
+            <!-- /* The message code is returned from the @Controller */ -->
+            <div th:text="${message}" class="alert alert-success">
+                &nbsp;
+            </div>
+        </th:block>
+
+        <form th:action="@{setproxy}" method="post" th:object="${instaUsers}">
+            <table class="table project-table">
+                <thead>
+                <tr>
+                    <th rowspan="2">Username</th>
+                    <th colspan="2">Proxy</th>
+                    <th rowspan="2">ACTION</th>
+                </tr>
+                <tr>
+                    <th>Host</th>
+                    <th>port</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user, stat : *{instaUser}">
+                    <td>
+                        <div th:text="${user.instaUserName}"></div>
+                        <input type="hidden" th:field="*{instaUser[__${stat.index}__].instaUserName}"
+                               placeholder="IP or domain name"></td>
+                    <td><input type="text" th:field="*{instaUser[__${stat.index}__].proxyHost}"
+                               placeholder="IP or domain name"></td>
+                    <td><input type="text" th:field="*{instaUser[__${stat.index}__].proxyPort}"
+                               placeholder="port (8080)"></td>
+                    <td><a href="#" th:onclick="'loadinsta(\'' + ${user.instaUserName} + '\'); return false;'">Check
+                        insta</a>
+                    <br />
+                        <div th:id="'resultBlock_' + ${#strings.replace(user.instaUserName, '.', '_')}"></div></td>
+                </tr>
+
+                </tbody>
+            </table>
+
+            <input type="submit" value="save">
+        </form>
+
     </div>
 
+
+    <script type="text/javascript">
+        function loadinsta(login) {
+            console.log("LOGIN");
+            console.log($('#resultBlock_'+login.replace('.', '_')));
+            $('#resultBlock_'+login).empty();
+            $('#resultBlock_'+login).html('Sprawdzam');
+
+            $.ajax({
+                url: '/instalogin',
+                type: 'GET',
+                data: {
+                    "login": login
+                },
+                success: function (data) {
+                    console.log('success');
+                    console.log(data);
+                    $('#resultBlock_'+login.replace('.', '_')).empty();
+                    $('#resultBlock_'+login.replace('.', '_')).html(data)
+                },
+                fail: function (data) {
+                    console.log('fail');
+                    $('#resultBlock_'+login.replace('.', '_')).empty();
+                    $('#resultBlock_'+login.replace('.', '_')).html(data)
+                }
+            });
+        }
+    </script>
 </div>
+
 </body>
 </html>

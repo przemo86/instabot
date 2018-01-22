@@ -4,6 +4,7 @@ import me.postaddict.instagram.scraper.Instagram;
 import me.postaddict.instagram.scraper.cookie.CookieHashSet;
 import me.postaddict.instagram.scraper.cookie.DefaultCookieJar;
 import me.postaddict.instagram.scraper.domain.Account;
+import me.postaddict.instagram.scraper.interceptor.UserAgentInterceptor;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
@@ -19,18 +20,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.logging.Logger;
 
 /**
  * Created by przem on 15.09.2017.
  */
 
+//@SessionScope
 public class InstaConstants {
+
+    protected Logger log = Logger.getLogger(this.getClass().getName());
 
     private DefaultCookieJar cookieJar = new DefaultCookieJar(new CookieHashSet());
 
     private Instagram instagramAnonymous;
     private Instagram instagramLoggedIn;
-    private OkHttpClient okHttpClient = new OkHttpClient();
     private final String ALIAS = "scaleeffect";
     private PrivateKey myPrivateKey;
     private PublicKey myPublicKey;
@@ -41,8 +45,6 @@ public class InstaConstants {
     @PostConstruct
     private void init() {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        instagramAnonymous = new Instagram(okHttpClient);
-        instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder().cookieJar(cookieJar).build());
         initKeyStore();
     }
 
@@ -63,43 +65,84 @@ public class InstaConstants {
     }
 
     public Instagram getInstagramAnonymous() {
-        instagramAnonymous = new Instagram(new OkHttpClient());
+        instagramAnonymous = new Instagram(new OkHttpClient().newBuilder()
+                .addInterceptor(new UserAgentInterceptor("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0"))
+                .build());
         return instagramAnonymous;
     }
 
     public Instagram getInstagramLoggedIn(String login) {
-        if (instagramLoggedIn != null && instagramLoggedIn.getUsername().equals(login)) {
-            return instagramLoggedIn;
+        if (instagramLoggedIn != null) {
+            log.info("JEST ZALOGOWANY " + instagramLoggedIn.getUsername() + " A CHCE " + login);
+            if (instagramLoggedIn.getUsername().equals(login)) {
+                log.info("");
+                return instagramLoggedIn;
+            }
         }
+
+        log.info("NO NIESTETY, MUSZE LOGOWAC...");
 
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         cookieJar.removeCookie("sessionid");
         cookieJar.removeCookie("ds_user_id");
-        instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder().cookieJar(cookieJar).build());
+//        log.info("PRINT COOKLIE");
+//        cookieJar.print();
+        instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder()
+                .addInterceptor(new UserAgentInterceptor("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0"))
+                .cookieJar(cookieJar).build());
 
-        InstaUser user = instaUserRepository.findByUserName(login);
-        byte[] password = user.getPassword();
 
         try {
-            byte[] decPass = decrypt(password);
-            String pass = new String(decPass, "UTF-8");
-            instagramLoggedIn.login1(user.getInstaUserName(), pass, 0);
-            System.out.println("RET " + instagramLoggedIn);
+            String pass = getUserPass(login);
+            loginInstagram(login, pass);
             return instagramLoggedIn;
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
+    public String getUserPass(String login) {
+        if (instaUserRepository == null) {
+            SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+        }
+        InstaUser user = instaUserRepository.findByUserName(login);
+        byte[] password = user.getPassword();
+        try {
+            byte[] decPass = decrypt(password);
+            String pass = new String(decPass, "UTF-8");
+            log.info("LOGIN " + login + " with pass " + pass);
+//            instagramLoggedIn.login1(user.getInstaUserName(), pass, 0);
+
+            return pass;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void loginInstagram(String login, String passwordd) throws Exception {
+        instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder()
+//                .addInterceptor(new UserAgentInterceptor("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0"))
+                .cookieJar(cookieJar).build());
+        instagramLoggedIn.login1(login, passwordd, 0);
+    }
+
     public Account instaLogin(String login, String passwordd) throws Exception {
-        System.out.println("INSTALOGIN " + login);
-        instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder().cookieJar(cookieJar).build());
+        log.info("INSTALOGIN " + login);
+        instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder()
+               // .addInterceptor(new UserAgentInterceptor("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0"))
+                .cookieJar(cookieJar).build());
         cookieJar.removeCookie("sessionid");
         cookieJar.removeCookie("ds_user_id");
-        return instagramLoggedIn.login(login, passwordd);
-
+        try {
+            return instagramLoggedIn.login(login, passwordd, 0);
+        } catch (Exception e) {
+            log.severe("ERROPr" + e);
+            log.severe("ERROPr" + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private void initKeyStore() {

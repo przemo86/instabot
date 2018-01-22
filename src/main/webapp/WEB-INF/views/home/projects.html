@@ -37,15 +37,25 @@
                     <td th:text="${#dates.format(project.created, #messages.msg('app.dateformat'))}"></td>
                     <td th:text="${project.customer}"></td>
                     <td th:text="#{${project.status} ? projects.table.active : projects.table.inactive}"></td>
-                    <td th:text="${project.owner.email}">-</td>
+                    <td th:text="${project.owner?.email}">-</td>
                     <td>
-                        <a th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')') or #authentication.name.equals(project.owner?.email)}"
-                           class="btn btn-default btn-xs"
-                           th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit"
-                           th:value="${project.id}" th:text="#{projects.table.edit}"></a>
+                        <a th:if="${#authentication.name.equals(project.owner?.email) and !project.status}"
+                           class="btn btn-sm btn-success"
+                           th:href="@{/start(id=${project.id})}" href="#"
+                           th:value="${project.id}"><i class="fa fa-play"></i>Uruchom </a>
 
-                        <a class="fa fa-line-chart btn btn-default btn-xs"
-                           th:href="@{/stats(id=${project.id})}" href="#" th:text="#{dashboard.project.stats}"></a>
+                        <a th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')') or #authentication.name.equals(project.owner?.email)}"
+                           class="btn btn-success btn-sm"
+                           th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit"
+                           th:value="${project.id}">
+                            <i class="fa fa-edit"></i>
+                            <span th:text="#{projects.table.edit}"></span>
+                        </a>
+
+                        <a class="btn btn-success btn-sm"
+                           th:href="@{/stats(id=${project.id})}" href="#" >
+                            <i class="fa fa-line-chart"></i> <span th:text="#{dashboard.project.stats}"></span></a>
+
                     </td>
                 </tr>
 

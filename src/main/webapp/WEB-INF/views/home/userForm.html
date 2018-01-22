@@ -20,6 +20,7 @@
           th:href="@{/resources/css/tokenfield-typeahead.min.css}"/>
     <script src="../../../resources/js/bootstrap-tokenfield.min.js"
             th:src="@{/resources/js/bootstrap-tokenfield.min.js}"></script>
+
 </head>
 <body>
 <script src="../../../resources/js/bootstrap.min.js" th:src="@{/resources/js/bootstrap.min.js}"></script>
@@ -147,41 +148,44 @@
 </div>
 <script th:inline="javascript">
     var url = '/listusers';
-$('#addnewinstauser').on('submit', function (e) {
-    console.log('submiting ');
-    console.log(e);
-    e.preventDefault();
-    submitForm();
-    return false;
-});
+    $('#addnewinstauser').on('submit', function (e) {
+        console.log('submiting ');
+        console.log(e);
+        e.preventDefault();
+        submitForm();
+        return false;
+    });
     $('#addInsta').on('click', function () {
-        //var myWindow = window.open('/addInstaUser', '_blank', "scrollbars=0,resizable=0,height=360,width=440");
         $("#signup-modal").modal();
         $("#signup-modal-body").text("");
         $(".modal-footer").hide();
 
         $.ajax({
-            url: "/addInstaUser",
+            url: "/addInstaUser?",
             cache: false
-        }).done(function (html) {
+        }).success(function (html) {
             $("#signup-modal-body").append(html);
-            $('#add').on('click', function() {
-                var token = $("meta[name='_csrf']").attr("content");
-                var header = $("meta[name='_csrf_header']").attr("content");
+
+            $('#add').on('click', function () {
                 submitForm();
             });
+            $("#username").focus();
         });
     });
 
     submitForm = function () {
+        var token = $("meta[name='_csrf']").attr("content");
+console.log('aaaaa ' + $('#username').val());
+console.log('bbbbb ' + token);
         $.ajax({
             url: '/addnewinstauser',
             type: 'post',
-            headers : {'X-CSRF-TOKEN' : $('input[name="_csrf"]').val()},
-            data:{ username: $('#inputEmail').val(), password: $('#inputPassword').val() }
+//            headers: {'XSRF-TOKEN': token},
+            data: {'insta_username': $('#insta_username').val(),
+                'insta_password': $('#insta_password').val(),
+                '_csrf': token}
         }).done(function (html) {
             console.log('success');
-            console.log(html);
             $("#resultsBlock").html(html);
             $("#signup-modal").modal('toggle');
         }).fail(function (err) {

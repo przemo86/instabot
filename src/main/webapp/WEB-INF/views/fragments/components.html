@@ -69,78 +69,54 @@
         <table class="table project-table" id="medias">
             <thead>
             <tr>
+                <th onclick="sortTable(0)">Data</th>
                 <th>Media</th>
                 <th style="width: 30%; max-width: 30%; word-wrap: break-word">Tags</th>
-                <th>Likes</th>
-                <th>Comments</th>
-                <th>User</th>
-                <th>Followed by</th>
+                <th onclick="sortTable(3)">Likes</th>
+                <th onclick="sortTable(4)">Comments</th>
+                <th onclick="sortTable(5)" th:if="${project.onlineStats}">User</th>
+                <th onclick="sortTable(6)" th:if="${project.onlineStats}">Followed by</th>
+                <th onclick="sortTable(7)" th:if="${project.onlineStats}">Location</th>
+                <!--<th>Like</th>-->
+                <!--<th>Comment</th>-->
             </tr>
             </thead>
             <tr th:each="media : ${mediaList}">
+                <td th:text="${#dates.format(media.createdDate, 'dd-MM-yyyy HH:mm')}"></td>
                 <td><a th:href="${media.link}" target="_blank"><img style="width: 50px" th:src="${media.thumbnailUri}"
                                                                     alt="[deleted]"/></a></td>
                 <td style="width: 30%; max-width: 30%; word-wrap: break-word">
                     <div th:each="tag : ${#strings.listSplit(media.tags,',')}" th:text="${tag}"
-                          th:class="${#lists.contains(#strings.listSplit(project.includeHashtags,','),tag)} ? 'label label-success' : 'label label-default'"
-                          style="margin-right: 1px"></div>
+                         th:class="${#lists.contains(#strings.listSplit(#strings.toUpperCase(project.includeHashtags),','),#strings.toUpperCase(tag))} ? 'label label-success' : 'label label-default'"
+                         style="margin-right: 1px"></div>
                 </td>
-                <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="like" th:data-id="${media.mediaId}"
-                       th:text="${media.userLikes}"></a></td>
-                <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="comment" th:data-id="${media.mediaId}"
-                       th:text="${media.commentsCount}"></a></td>
-                <td><a th:href="'https://www.instagram.com/' + ${media.userName}" target="_blank"><img
+                <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="like"
+                       th:data-id="${media.mediaId}"
+                       th:text="${media.userLikes}"></a><span th:if="${media.liked}" class="fa fa-check"
+                                                              th:title="${#dates.format(media.actionTime, 'dd-MM-yyyy HH:mm')}"/>
+                </td>
+                <td><a href="#" data-toggle="modal" data-target="#myModal" data-type="comment"
+                       th:data-id="${media.mediaId}"
+                       th:text="${media.commentsCount}"></a><span th:if="${media.commented}" class="fa fa-check"
+                                                                  th:title="${#dates.format(media.actionTime, 'dd-MM-yyyy HH:mm')}"/>
+                </td>
+                <td th:if="${project.onlineStats}"><a th:href="'https://www.instagram.com/' + ${media.userName}"
+                                                      target="_blank"><img
                         class="img-circle"
-                        style="width: 50px; padding-right: 10px"
+                        style="width: 50px;"
                         th:src="${media.userProfileImage}"
                         th:alt="${media.userProfileImage}"
                         th:text="${media.userName}"/></a>
                 </td>
-                <td th:text="${media.userFollowed}"></td>
+                <td th:if="${project.onlineStats}" th:text="${media.userFollowed}"></td>
+                <td th:if="${project.onlineStats}"   th:text="${media.locationName}"></td>
 
                 <!--<td><a href="#" class="like" th:data-mediaid="${media.mediaId}">Polub</a></td>-->
                 <!--<td><a href="#" class="comment" th:data-mediaid="${media.mediaId}">Skomentuj</a></td>-->
 
             </tr>
         </table>
-        <!--<script th:inline="javascript">-->
-            <!--$('.like').on('click', function (e) {-->
-                <!--var id = e.currentTarget.dataset['mediaid'];-->
 
-                <!--$.ajax({-->
-                    <!--url: "/stats/like?id=" + id,-->
-                    <!--cache: false-->
-                <!--}).done(function (html) {-->
-                    <!--showPopup('Polubiono', 'alert-success');-->
-                <!--}).fail(function (html) {-->
-                    <!--showPopup('Już polubiono', 'alert-danger');-->
-                <!--});-->
-            <!--});-->
-
-            <!--$('.comment').on('click', function (e) {-->
-                <!--var id = e.currentTarget.dataset['mediaid'];-->
-
-                <!--$.ajax({-->
-                    <!--url: "/stats/comment?id=" + id,-->
-                    <!--cache: false-->
-                <!--}).done(function (html) {-->
-                    <!--showPopup('Skomentowano', 'alert-success');-->
-                <!--}).fail(function (html) {-->
-                    <!--showPopup('Już skomentowano', 'alert-danger');-->
-                <!--});-->
-            <!--});-->
-
-            <!--function showPopup(message, attr) {-->
-                <!--$("#notification").hide();-->
-                <!--$('#notification').removeClass('alert-success');-->
-                <!--$('#notification').removeClass('alert-danger');-->
-                <!--$('#notification').addClass(attr);-->
-
-                <!--$("#notification").empty();-->
-                <!--$("#notification").fadeIn("slow").append(message);-->
-                <!--setTimeout('$("#notification").fadeOut("slow")', 2500);-->
-            <!--}-->
-        <!--</script>-->
     </div>
 
     <div th:fragment="hashtags">
@@ -159,19 +135,70 @@
                 <td th:text="${#numbers.formatDecimal(tag.total, 0,0)}"></td>
                 <td>
 
-                        <span th:text="${#numbers.formatDecimal(100*(tag.hits/tag.total), 0,2)} + ' %'"></span>
+                    <span th:text="${#numbers.formatDecimal(100*(tag.hits/tag.total), 0,2)} + ' %'"></span>
                     <div class="progress">
                         <div class="progress-bar progress-bar-info" role="progressbar" th:aria-valuenow="${tag.hits}"
-                             aria-valuemin="0" th:aria-valuemax="${tag.total}" th:style="'width:' + ${100*(tag.hits/tag.total)} + '%'"></div>
+                             aria-valuemin="0" th:aria-valuemax="${tag.total}"
+                             th:style="'width:' + ${100*(tag.hits/tag.total)} + '%'"></div>
                     </div>
                 </td>
             </tr>
         </table>
     </div>
 
-    <ul th:fragment="modal-content" th:each="item : ${items}">
-        <li th:text="${item}"/>
-    </ul>
+    <div th:fragment="modal-content-like">
+        <table class="table project-table" id="likes">
+            <tr th:each="item : ${items}">
+                <td><a th:href="'https://www.instagram.com/'+${item.username}"><img th:src="${item.profilePicUrl}"
+                                                                                    style="width: 30px" alt=""></a></td>
+                <td><a th:href="'https://www.instagram.com/'+${item.username}" th:text="${item.username}"></a></td>
+            </tr>
+        </table>
+        <span th:text="${message}"></span>
+    </div>
+
+    <div th:fragment="modal-content-comment">
+        <table class="table project-table" id="comments">
+            <thead>
+            <tr>
+                <th>User</th>
+                <th>Time</th>
+                <th>Comment</th>
+
+            </tr>
+            </thead>
+            <tr th:each="item : ${items}">
+                <td><a th:href="'https://www.instagram.com/'+${item.user.username}" th:text="${item.user.username}"></a>
+                </td>
+                <td th:text="${#dates.format(item.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
+                <td th:text="${item.text}"></td>
+            </tr>
+        </table>
+        <span th:text="${message}"></span>
+    </div>
+
+    <div th:fragment="project-comment-list">
+        <table id="comment">
+            <tr>
+                <th>Treść</th>
+                <th>Priorytet</th>
+                <th>Usuń</th>
+            </tr>
+            <tr th:each="k,iterStat  : ${comments}">
+                <td>
+                                                <span th:text="${k.comment}">
+                                                    </span>
+                </td>
+                <td>
+                    <span th:text="${k.priority}"></span>
+                </td>
+                <td>
+                    <a href="#" class="fa fa-trash-o" id="delete"
+                       th:onclick="'removeComment(' + ${iterStat.index} + ');'"></a>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 
 </body>

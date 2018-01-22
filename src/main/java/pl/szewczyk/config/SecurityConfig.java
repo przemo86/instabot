@@ -61,7 +61,7 @@ class SecurityConfig extends WebSecurityConfigurerAdapter {
             .rememberMe()
                 .rememberMeServices(rememberMeServices())
                 .key("remember-me-key");
-
+//http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     }
 
     @Bean(name = "authenticationManager")

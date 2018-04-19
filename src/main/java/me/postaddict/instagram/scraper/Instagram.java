@@ -93,6 +93,10 @@ public class Instagram implements AuthenticatedInsta {
         log.info("LOGIN1 response code " + response.code() + " response starts with " + json.charAt(0));
         if (response.code() == 200 && json.charAt(0) == '{') {
             log.info(json);
+            log.info("===============");
+            if (gson.fromJson(json, Map.class).get("authenticated") == Boolean.FALSE) {
+                throw new InstagramAuthException("Wrong username or password");
+            }
         }
 
         if (response.code() != 200 && num <= MAX_LOGIN) {
@@ -123,7 +127,6 @@ public class Instagram implements AuthenticatedInsta {
         log.info("LOGIN response code " + response.code() + " response starts with " + json.charAt(0));
         if (response.code() == 200 && json.charAt(0) == '{') {
             log.info("SUPER \n" + json);
-            log.info((String) gson.fromJson(json, Map.class).get("status"));
         }
 
         if (response.code() != 200 && num <= MAX_LOGIN) {
@@ -141,14 +144,16 @@ public class Instagram implements AuthenticatedInsta {
             throw new Exception("Nie zalogowalem");
         } else {
             try {
+                System.out.println("USER 1");
                 String user = (String) ((Map) gson.fromJson(json, Map.class).get("form_data")).get("username");
-
+                System.out.println("USER = " + user);
                 Account acc = getAccountByUsername(user);
-
+                System.out.println("ACC " + acc);
                 this.username = username;
                 return acc;
             } catch (Exception e) {
                 e.printStackTrace();
+                System.out.println(e.getMessage());
                 throw new Exception("Nie zalogowalem 2");
             }
         }
@@ -162,8 +167,9 @@ public class Instagram implements AuthenticatedInsta {
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         String jsonString = response.body().string();
         response.body().close();
-
+        System.out.println(jsonString);
         Map userJson = gson.fromJson(jsonString, Map.class);
+
         String shortCode = (String) ((Map) ((Map) ((List) ((Map) ((Map) ((Map) userJson.get("data")).get("user")).get("edge_web_discover_media")).get("edges")).get(0)).get("node")).get("shortcode");
         Media m = getMediaByCode(shortCode);
         return m.owner;
@@ -171,14 +177,18 @@ public class Instagram implements AuthenticatedInsta {
 
     public Account getAccountByUsername(String username) throws IOException {
         Request request = new Request.Builder()
-                .url(Endpoint.getAccountJsonInfoLinkByUsername(username))
+                .url(Endpoint.getGeneralSearchJsonLink(username))
                 .build();
 
+        System.out.println("XXX");
         Response response = this.httpClient.newCall(request).execute();
         String jsonString = response.body().string();
         response.body().close();
-        Map userJson = gson.fromJson(jsonString, Map.class);
-        return Account.fromAccountPage((Map) userJson.get("user"));
+        System.out.println("XX   X" + response.code() + "   ");
+        System.out.println("XX   X" + ((Map)((List<Object>)gson.fromJson(jsonString, Map.class).get("users")).get(0)).get("user") + "   ");
+        String pk = (String) ((Map)((Map)((List<Object>)gson.fromJson(jsonString, Map.class).get("users")).get(0)).get("user")).get("pk");
+
+        return getAccountById(Long.parseLong(pk));
     }
 
     public List<Media> getMedias(String username, int count) throws IOException {
@@ -348,8 +358,10 @@ public class Instagram implements AuthenticatedInsta {
                 .build();
 
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        log.info("response code " + response.code());
         String jsonString = response.body().string();
         response.body().close();
+        log.info("JSON " + jsonString);
         Map commentsMap = gson.fromJson(jsonString, Map.class);
         List nodes = (List) ((Map) ((Map) ((Map) commentsMap.get("data")).get("shortcode_media")).get("edge_media_to_comment")).get("edges");
         for (Object node : nodes) {
@@ -370,9 +382,11 @@ public class Instagram implements AuthenticatedInsta {
                 .url(Endpoint.getMediaLikesByShortcode(code))
                 .header("Referer", Endpoint.BASE_URL + "/")
                 .build();
-
-        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        log.info(Endpoint.getMediaLikesByShortcode(code));
+        Response response = this.httpClient.newCall(request).execute();
+        log.info("response code " + response.code());
         String jsonString = response.body().string();
+        log.info("JSON " + jsonString);
         response.body().close();
         Map commentsMap = gson.fromJson(jsonString, Map.class);
         if (!commentsMap.get("status").equals("ok"))
@@ -557,13 +571,17 @@ public class Instagram implements AuthenticatedInsta {
         basePage();
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         String jsonString = response.body().string();
+        log.info("COMMENTED\n" + jsonString);
+        log.info("STATUS CODE: " + response.code());
         if (response.code() == 403) {
             throw new Exception(jsonString);
         }
-
+        log.info("aaa");
         response.body().close();
+        log.info("bbb");
 
         Map commentMap = gson.fromJson(jsonString, Map.class);
+        log.info("ccc");
         return Comment.fromApi(commentMap);
     }
 

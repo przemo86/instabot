@@ -174,7 +174,7 @@
     });
 
     submitForm = function () {
-        var token = $("meta[name='_csrf']").attr("content");
+        var token = $("#form input:nth-child(1)").val();
 console.log('aaaaa ' + $('#username').val());
 console.log('bbbbb ' + token);
         $.ajax({

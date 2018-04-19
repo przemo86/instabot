@@ -247,18 +247,15 @@ public class Project implements java.io.Serializable {
         if (comments.size() == 0)
             return "";
 
-        System.out.println("R 1");
         int sum = comments.stream().mapToInt(c -> c.getPriority()).sum();
-        System.out.println("R " + sum);
         Double rand = ((Math.random() * sum) + 1);
-        System.out.println("R " + rand);
 
         int rSum = 0;
         for (Comment c : comments) {
-        System.out.println("R " + c);
+        System.out.println("R " + c.getComment());
             rSum += c.getPriority();
             if (rSum <= rand) {
-                System.out.println("RET " + c);
+                System.out.println("RET " + c.getComment());
                 return c.getComment();
             }
         }

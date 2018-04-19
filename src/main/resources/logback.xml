@@ -11,9 +11,5 @@
 </appender>
 
 <jmxConfigurator />
-<root level="DEBUG">
-    <appender-ref ref="STDOUT" />
-</root>
 
-<logger name="pl.szewczyk" level="DEBUG" />
 </configuration>

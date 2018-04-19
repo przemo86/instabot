@@ -9,11 +9,11 @@
     <div class="form-group row">
         <label for="hours" class="col-lg-4 control-label" style="text-align: right">Wybierz przedział czasowy</label>
         <div class="col-lg-8">
-    <select class="form-control" id="hours">
-        <option value="24">ostatnie 24 godziny</option>
-        <option value="48">ostatnie 48 godzin</option>
-        <option value="168">ostatnie 7 dni</option>
-    </select>
+            <select class="form-control" id="hours">
+                <option value="24">ostatnie 24 godziny</option>
+                <option value="48">ostatnie 48 godzin</option>
+                <option value="168">ostatnie 7 dni</option>
+            </select>
         </div>
     </div>
 
@@ -118,6 +118,15 @@
             }
         });
 
+        wczytaj = function(img) {
+            $.ajax({
+                url: $(img).attr('link') + '?__a=1'
+            })
+                .done(function (ret) {
+                    $(img).attr('src', ret.graphql.shortcode_media.display_url);
+                });
+        }
+
         $("#canvas").click(
             function (evt) {
                 var activePoints = myLineChart.getElementsAtEvent(evt);
@@ -142,6 +151,12 @@
                             $("#status").fadeOut();
                             $("#preloader").fadeOut();
                             $("#details").fadeIn();
+                        }
+                    }).done(function () {
+                        var arr = $('#medias > tbody > tr > td:nth-child(2) > a > img');
+                        for (i = 0; i < arr.length; i++) {
+
+                            wczytaj(arr[i]);
                         }
                     });
                 }

@@ -75,7 +75,7 @@ public class Media implements Serializable {
         System.out.println(mediaFeedData);
         this.link = mediaFeedData.link;
         this.mediaId = mediaFeedData.id;
-        this.thumbnailUri = mediaFeedData.imageUrls.thumbnail;
+        this.thumbnailUri = mediaFeedData.imageUrl;
         this.tags = mediaFeedData.getTags().stream().collect(Collectors.joining(","));
         this.createdDate = new Date(mediaFeedData.createdTime);
         this.actionTime = mediaFeedData.action_time;
@@ -251,4 +251,28 @@ public class Media implements Serializable {
     public void setMyComment(String myComment) {
         this.myComment = myComment;
     }
+
+//    @Override
+//    public String toString() {
+//        return "Media{" +
+//                "id=" + id +
+//                ", statistic=" + statistic +
+//                ", mediaId='" + mediaId + '\'' +
+//                ", thumbnailUri='" + thumbnailUri + '\'' +
+//                ", link='" + link + '\'' +
+//                ", caption='" + caption + '\'' +
+//                ", tags='" + tags + '\'' +
+//                ", createdDate=" + createdDate +
+//                ", liked=" + liked +
+//                ", commented=" + commented +
+//                ", actionTime=" + actionTime +
+//                ", userName='" + userName + '\'' +
+//                ", userProfileImage='" + userProfileImage + '\'' +
+//                ", userFollowed=" + userFollowed +
+//                ", userLikes=" + userLikes +
+//                ", commentsCount=" + commentsCount +
+//                ", locationName='" + locationName + '\'' +
+//                ", myComment='" + myComment + '\'' +
+//                '}';
+//    }
 }

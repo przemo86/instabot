@@ -121,11 +121,13 @@ public class AccountController {
                     account.setPassword(passwordEncoder.encode(userForm.getPassword()));
         log.severe("tostring = " + userForm.toString());
 
+        if (account.getInstaUsers().size() > 0) {
+            for (InstaUser iu : account.getInstaUsers())
+                instaUserRepository.save(iu);
+        }
+
         accountRepository.save(account);
 
-        if (account.getInstaUsers().size() > 0) {
-            InstaUser iu = instaUserRepository.save(account.getInstaUsers().iterator().next());
-        }
 
 
         return "redirect:users";
@@ -145,8 +147,9 @@ public class AccountController {
             acc = instaConstants.instaLogin(username, pass);
         } catch (Exception e) {
             log.severe("e MESSAGE " + e.getMessage());
-
-            return "Nie udało się zalogować do Instagrama \n(" + e.getMessage() + ")";
+            response.setStatus(500);
+            response.setHeader("error", "Wystąpił błąd");
+            return null;
         }
 
         if (acc != null) {

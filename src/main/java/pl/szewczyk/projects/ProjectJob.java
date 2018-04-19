@@ -219,6 +219,7 @@ public class ProjectJob implements InterruptableJob {
                             media1.setMyComment(media.myComment);
                             try {
                                 media1.setCommented(comment(media, media.myComment, loggedInInstagram));
+                                log.info("COMMENTED");
                             } catch (Exception e) {
                                 media1.setCommented(false);
                                 break;
@@ -227,8 +228,10 @@ public class ProjectJob implements InterruptableJob {
                     } else {
                         media.commented = false;
                     }
-
+                    log.info("MEDIA!");
+                    log.info(media1.toString());
                     media1 = mediaRepository.save(media1);
+                    log.info(media1.toString());
                     //                                it.remove();
 
                 } else if (project.getHashtagSearch() == null) {
@@ -310,16 +313,15 @@ public class ProjectJob implements InterruptableJob {
 
 
     private boolean comment(Media media, String comment, Instagram instagram) throws Exception {
-
-            instagram.addMediaComment(media.shortcode, comment);
-            return true;
+        instagram.addMediaComment(media.shortcode, comment);
+        return true;
 
     }
 
     private boolean like(Media media, Instagram instagram) throws IOException {
-            instagram.likeMediaByCode(media.shortcode);
+        instagram.likeMediaByCode(media.shortcode);
 
-            return true;
+        return true;
     }
 
     @Override

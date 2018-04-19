@@ -194,14 +194,16 @@ public class StatsController {
             log.info("BBB " + id);
             String code = me.postaddict.instagram.scraper.domain.Media.getCodeFromId(id);
             log.info("BBB " + code);
+                Project project = projectRepository.znajdz(Long.parseLong(em.createNativeQuery("select projectid from instabot.statistics where id = (select stat_id from instabot.media where mediaid =  :media)").setParameter("media", id).getSingleResult().toString()));
             if (type.equals("like")) {
-                List<Account> list = instaConstants.getInstagramAnonymous().getUserLikesByMediaCode(code);
+
+                List<Account> list = instaConstants.getInstagramLoggedIn(project.getInstagramAccount()).getUserLikesByMediaCode(code);
                 model.addAttribute("items", list);
 
                 return "fragments/components :: modal-content-like";
             } else {
                 System.out.println(code);
-                List<Comment> comments = instaConstants.getInstagramAnonymous().getCommentsByMediaCode(code, 999);
+                List<Comment> comments = instaConstants.getInstagramLoggedIn(project.getInstagramAccount()).getCommentsByMediaCode(code, 999);
                 for (Comment c : comments)
                     log.info(c.text);
                 model.addAttribute("items", comments);

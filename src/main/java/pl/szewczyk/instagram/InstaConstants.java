@@ -6,6 +6,7 @@ import me.postaddict.instagram.scraper.cookie.DefaultCookieJar;
 import me.postaddict.instagram.scraper.domain.Account;
 import me.postaddict.instagram.scraper.interceptor.UserAgentInterceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import pl.szewczyk.account.InstaUserRepository;
@@ -87,6 +88,7 @@ public class InstaConstants {
         cookieJar.removeCookie("ds_user_id");
 //        log.info("PRINT COOKLIE");
 //        cookieJar.print();
+
         instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder()
                 .addInterceptor(new UserAgentInterceptor("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0"))
                 .cookieJar(cookieJar).build());
@@ -122,8 +124,11 @@ public class InstaConstants {
     }
 
     public void loginInstagram(String login, String passwordd) throws Exception {
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(s -> log.info(s));
+
         instagramLoggedIn = new Instagram(new OkHttpClient().newBuilder()
 //                .addInterceptor(new UserAgentInterceptor("Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0"))
+                .addInterceptor(logging)
                 .cookieJar(cookieJar).build());
         instagramLoggedIn.login1(login, passwordd, 0);
     }

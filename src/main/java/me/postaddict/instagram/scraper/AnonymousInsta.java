@@ -15,6 +15,6 @@ public interface AnonymousInsta extends StatelessInsta {
 
     List<Media> getTopMediasByTag(String tag) throws IOException;
     List<Comment> getCommentsByMediaCode(String code, int count) throws IOException;
-    Account getAccountById(long id) throws IOException;
+    Account getAccountById(Long id) throws IOException;
 
 }

@@ -11,15 +11,17 @@ public abstract class Endpoint {
     public static final String ACCOUNT_JSON_INFO = "https://www.instagram.com/{{username}}/?__a=1";
     public static final String TAG_JSON_INFO = "https://www.instagram.com/explore/tags/{{tag_name}}/?__a=1";
     public static final String MEDIA_JSON_INFO = "https://www.instagram.com/p/{{code}}/?__a=1";
-    public static final String MEDIA_LIKE_INFO = "https://www.instagram.com/graphql/query/?query_id=17864450716183058&variables=%7B\"shortcode\"%3A\"{{code}}\"%2C\"first\"%3A9999%7D";
+    public static final String MEDIA_LIKE_INFO = "https://www.instagram.com/graphql/query/?query_hash=1cb6ec562846122743b61e492c85999f&variables={%22shortcode%22:%22{{code}}%22,%22first%22:24}";
     public static final String MEDIA_JSON_BY_LOCATION_ID = "https://www.instagram.com/explore/locations/{{facebookLocationId}}/?__a=1&max_id={{maxId}}";
     public static final String MEDIA_JSON_BY_TAG = "https://www.instagram.com/explore/tags/{{tag}}/?__a=1&max_id={{maxId}}";
     public static final String GENERAL_SEARCH = "https://www.instagram.com/web/search/topsearch/?query={{query}}";
     public static final String LOCATION_SEARCH = "https://www.instagram.com/web/search/topsearch/?context=place&query={{query}}";
-    public static final String ACCOUNT_JSON_INFO_BY_ID = "https://www.instagram.com/graphql/query/?query_id=17863787143139595&id={{userId}}&first=1";
+    public static final String USER_SEARCH = "https://www.instagram.com/web/search/topsearch/?context=user&query={{query}}";
+    public static final String ACCOUNT_JSON_INFO_BY_ID = "https://www.instagram.com/graphql/query/?query_hash=9ca88e465c3f866a76f7adee3871bdd8&variables={%22user_id%22%3A%22{{userId}}%22%2C%22include_chaining%22%3Afalse%2C%22include_reel%22%3Atrue}";
     public static final String LAST_COMMENTS_BY_CODE = "ig_shortcode({{code}}){comments.last({{count}}){count,nodes{id,created_at,text,user{id,profile_pic_url,username,follows{count},followed_by{count},biography,full_name,media{count},is_private,external_url,is_verified}},page_info}}";
 //    public static final String COMMENTS_BEFORE_COMMENT_ID_BY_CODE = "https://www.instagram.com/graphql/query/?query_id=17852405266163336&shortcode={{shortcode}}&first={{count}}&after={{commentId}}";
     public static final String COMMENTS_BEFORE_COMMENT_ID_BY_CODE = "https://www.instagram.com/graphql/query/?query_id=17852405266163336&shortcode={{shortcode}}&first={{count}}";
+    public static final String COMMENTS_WITH_MENTIONS = "https://www.instagram.com/accounts/activity/?__a=1";
     public static final String MEDIA_LIKE = "https://www.instagram.com/web/likes/{{mediaId}}/like/";
     public static final String MEDIA_UNLIKE = "https://www.instagram.com/web/likes/{{mediaId}}/unlike/";
     public static final String MEDIA_COMMENTS_ADD = "https://www.instagram.com/web/comments/{{mediaId}}/add/";
@@ -28,6 +30,7 @@ public abstract class Endpoint {
     public static final String FOLLOWERS_URL = "https://www.instagram.com/graphql/query/?query_id=17851374694183129&variables={\"id\": {{userId}}, \"first\": {{count}}, \"after\": \"{{endCursor}}\"}";
     public static final String INSTAGRAM_QUERY_URL = "https://www.instagram.com/query/";
     public static final String INSTAGRAM_CDN_URL = "https://scontent.cdninstagram.com/";
+    public static final String FOLLOW_USER = "https://www.instagram.com/web/friendships/{{userId}}/follow/";
 
     public static String getAccountPageLink(String username) {
         return ACCOUNT_PAGE.replace("{{username}}", username);
@@ -85,6 +88,10 @@ public abstract class Endpoint {
         return LOCATION_SEARCH.replace("{{query}}", query);
     }
 
+    public static String getUserSearchJsonLink(Long query) {
+        return ACCOUNT_JSON_INFO_BY_ID.replace("{{userId}}", query.toString());
+    }
+
     public static String getLastCommentsByCodeLink(String code, int count) {
         return LAST_COMMENTS_BY_CODE
                 .replace("{{code}}", code)
@@ -128,4 +135,8 @@ public abstract class Endpoint {
                 .replace("{{count}}", String.valueOf(count))
                 .replace("{{endCursor}}", endCursor);
     }
+public static String getFollowUserLink(String userid) {
+        return FOLLOW_USER.replace("{{userId}}", userid);
 }
+}
+

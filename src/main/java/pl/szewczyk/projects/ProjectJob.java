@@ -66,12 +66,13 @@ public class ProjectJob implements InterruptableJob {
 
             project = projectRepository.znajdz(id);
 
-            InstaUser instaUser = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
-
-            loggedInInstagram = instaConstants.getInstagramLoggedIn(instaUser.getInstaUserName());
             if (loggedInInstagram == null) {
-                log.severe("NIE ZALOGOWANY DO INSTAGRAMA :(");
-                return;
+                InstaUser instaUser = em.createQuery("from InstaUser where instaUserName = :id", InstaUser.class).setParameter("id", project.getInstagramAccount()).getSingleResult();
+                loggedInInstagram = instaConstants.getInstagramLoggedIn(instaUser.getInstaUserName());
+                if (loggedInInstagram == null) {
+                    log.severe("NIE ZALOGOWANY DO INSTAGRAMA :(");
+                    return;
+                }
             }
         }
         Map<String, List<Media>> tags = new HashMap<>();
@@ -105,7 +106,7 @@ public class ProjectJob implements InterruptableJob {
 //                        .collect(Collectors.toList());
 //                Iterator<Media> it = searches.iterator();
 //                while (it.hasNext() && !interrupted.get()) {
-//                    System.out.println("EXEC CURRENT THREAD " + currentThread.getId());
+//                    log.info("EXEC CURRENT THREAD " + currentThread.getId());
 //                    currentThread.sleep(5000 + (long) (Math.random() * 10000));
 //
 //                    Media media = it.next();
@@ -132,7 +133,7 @@ public class ProjectJob implements InterruptableJob {
 //                            media1.setStatistic(statistic);
 //                            statistic.getMedia().add(media1);
 //                            mediaRepository.save(media1);
-//                            System.out.println("SAVE STATS");
+//                            log.info("SAVE STATS");
 //                            //                                it.remove();
 //                        } else {
 //                            log.info("JUZ TO ROBILEM... " + media.shortcode);
@@ -152,6 +153,7 @@ public class ProjectJob implements InterruptableJob {
                     .distinct()
                     .collect(Collectors.toList());
 
+
             if (project.getIncludeHashtags() != null && !"".equals(project.getIncludeHashtags())) {
                 if (project.getLocationId() != null && !"".equals(project.getLocationId())) {
                     List<Media> finalLocationsMedia = locationsMedia;
@@ -162,6 +164,9 @@ public class ProjectJob implements InterruptableJob {
                     searches = searchLocation(project.getLocationId());
                 }
             }
+
+
+            //include hashtags (many?) filter
             log.info("AFTER INCLUDE AND LOCATIONS FILTER = " + searches.size());
             searches = searches.stream()
                     .filter(s -> Collections.disjoint(
@@ -170,12 +175,56 @@ public class ProjectJob implements InterruptableJob {
                                     .collect(Collectors.toSet()), Arrays.asList(project.getExcludeHashtags().toLowerCase().split(","))
                     )).collect(Collectors.toList());
             log.info("AFTER EXCLUDE " + searches.size());
+            log.info("---------");
+
+
+            //blacklisted words filter
             if (project.getBlacklisted() != null && !"".equals(project.getBlacklisted())) {
                 List blackListed = Arrays.asList(project.getBlacklisted().toLowerCase().split("\n")).stream().map(b -> Arrays.asList(b.split(","))).collect(Collectors.toList());
 
                 searches.stream().filter(s -> Collections.disjoint(Arrays.asList(s.caption.toLowerCase().split(" ")), blackListed)).collect(Collectors.toList());
             }
             log.info("AFTER BLACKLIST FILTER " + searches.size());
+
+
+            //user details search
+            log.info("OWNER MANUAL " + searches.size());
+//            if ((Objects.nonNull(project.getMinObserved()) && project.getMinObserved().longValue() > 0) || (Objects.nonNull(project.getBlacklistedUsers()) && !project.getBlacklistedUsers().isEmpty())) {
+                searches.stream().forEach(m -> {
+                    try {
+                        m.owner = loggedInInstagram.getAccountById(Long.parseLong(m.ownerId));
+                    } catch (IOException e) {
+                        log.info(e.getMessage());
+                    }
+                });
+//            }
+
+            //min followers filter
+            if (Objects.nonNull(project.getMinObserved()) && project.getMinObserved() > 0) {
+                log.info("MIN OBSERVED SEARCH " + project.getMinObserved());
+                searches.stream().forEach(s -> System.out.println(s.owner.username + " has " + s.owner.followedByCount + " observers"));
+
+                searches.stream().filter(s -> s.owner.followedByCount > project.getMinObserved());
+            }
+            log.info("AFTER MIN OBSERVED " + searches.size());
+
+            //blacklisted user filter
+            if (project.getBlacklistedUsers() != null && !project.getBlacklistedUsers().isEmpty()) {
+                List blackListed = project.getBlacklistedUsers().stream().map(b -> b.getUsername()).collect(Collectors.toList());
+                searches.stream().forEach(s -> System.out.println(s.owner.username + " " + (blackListed.contains(s.owner.username) ? "is" : "isn't") + " blacklisted"));
+                searches.stream().filter(s -> !blackListed.contains(s.owner.username));
+            }
+            log.info("AFTER BLACKLIST FILTER " + searches.size());
+
+            //capping filter
+            if (project.isCapping() && project.getCappingTime() > 0) {
+
+                List blackListed = project.getBlacklistedUsers().stream().map(b -> b.getUsername()).collect(Collectors.toList());
+
+                searches.stream().filter(s -> !blackListed.contains(s.owner.username));
+            }
+            log.info("AFTER capping " + searches.size());
+
 
             if (searches.size() > 20) {
                 Collections.shuffle(searches);
@@ -198,13 +247,15 @@ public class ProjectJob implements InterruptableJob {
                     if (null == (media1 = mediaRepository.findByProjectAndMediaId(media.id, project.getId()))) {
                         media1 = new pl.szewczyk.stats.Media(media);
                         media1.setStatistic(statistic);
-                        statistic.getMedia().add(media1);
                     }
-                    log.info("WORKING WITH " + media.shortcode + " Like " + project.isLike() + ", comment " + project.isComment());
+                    statistic.getMedia().add(media1);
+                    log.info("MEDIA1 " + media1);
+                    log.info("WORKING WITH " + media.shortcode + " Like " + project.isLike() + ", comment " + project.isComment() + ", follow " + project.isFollow());
                     if (project.isLike()) {
                         if (mediaRepository.countMediaLiked(media.id, project.getId()) == 0L)
                             try {
                                 media1.setLiked(like(media, loggedInInstagram));
+                                log.info("LIKED");
                             } catch (IOException e) {
                                 media1.setLiked(false);
                                 break;
@@ -228,9 +279,24 @@ public class ProjectJob implements InterruptableJob {
                     } else {
                         media.commented = false;
                     }
-                    log.info("MEDIA!");
-                    log.info(media1.toString());
+
+                    if (project.isFollow()) {
+                        log.info("FOLLOW USER " + media.ownerId);
+                        loggedInInstagram.followUser(media.ownerId);
+                    }
+
+
+                    log.info("SAVE MEDIA 1");
+//                    media1.setStatistic(statistic);
+                    if (Objects.nonNull(media.owner)) {
+                        media1.setUserFollowed(media.owner.followedByCount);
+                        media1.setUserProfileImage(media.owner.profilePicUrl);
+                        media1.setUserId(Long.parseLong(media.ownerId));
+                    }
+
                     media1 = mediaRepository.save(media1);
+
+                    log.info("SAVE MEDIA " + media1.getId());
                     log.info(media1.toString());
                     //                                it.remove();
 
@@ -240,6 +306,7 @@ public class ProjectJob implements InterruptableJob {
                         media1 = new pl.szewczyk.stats.Media(media);
                         media1.setStatistic(statistic);
                         statistic.getMedia().add(media1);
+                        log.info("SAVE MEDIA ");
                         mediaRepository.save(media1);
                     }
                 } else {
@@ -249,18 +316,14 @@ public class ProjectJob implements InterruptableJob {
             }
 
 
-        } catch (
-                NullPointerException e)
+//            loggedInInstagram.likeMenttions();
 
-        {
-            e.printStackTrace();
-        } catch (
-                InterruptedException e)
+            log.info("FINISHED " + project.getName() + " WITH " + statistic.getMedia().size() + " HITS");
 
-        {
+        } catch (NullPointerException | InterruptedException e) {
             e.printStackTrace();
+            log.info(e.getMessage());
         }
-
     }
 
     public List<Media> searchLocation(String locationId) {
@@ -326,14 +389,20 @@ public class ProjectJob implements InterruptableJob {
 
     @Override
     public void interrupt() throws UnableToInterruptJobException {
-        System.out.println("INTERRUPT JOB");
+        log.info("INTERRUPT JOB");
         if (currentThread != null) {
-            System.out.println("MY JOB " + currentThread.getId());
+            log.info("MY JOB " + currentThread.getId());
             interrupted.set(true);
             currentThread.interrupt();
 
         } else {
-            System.out.println("NIE UMIEM ZATRZYMAC NULLA");
+            log.info("NIE UMIEM ZATRZYMAC NULLA");
         }
+    }
+
+    public List<String> getLastCommentedUsers(Integer minutes) {
+
+
+        return null;
     }
 }

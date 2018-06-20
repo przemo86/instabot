@@ -109,7 +109,7 @@
                         th:text="${media.userName}"/></a>
                 </td>
                 <td th:if="${project.onlineStats}" th:text="${media.userFollowed}"></td>
-                <td th:if="${project.onlineStats}"   th:text="${media.locationName}"></td>
+                <td th:if="${project.onlineStats}" th:text="${media.locationName}"></td>
 
                 <!--<td><a href="#" class="like" th:data-mediaid="${media.mediaId}">Polub</a></td>-->
                 <!--<td><a href="#" class="comment" th:data-mediaid="${media.mediaId}">Skomentuj</a></td>-->
@@ -178,7 +178,7 @@
     </div>
 
     <div th:fragment="project-comment-list">
-        <table id="comment">
+        <table id="comment" class="table table-striped">
             <tr>
                 <th>Treść</th>
                 <th>Priorytet</th>
@@ -198,6 +198,36 @@
                 </td>
             </tr>
         </table>
+    </div>
+
+    <div th:fragment="blacklisted">
+        <div class="panel-group">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#collapse1">Blokowani
+                            użytkownicy
+                            <span class="badge"
+                                  th:text="${#sets.size(blacklistedUsers)}"></span></a>
+                    </h4>
+                </div>
+                <div id="collapse1" class="panel-collapse collapse">
+                    <ul class="list-group">
+                        <li class="list-group-item"
+                            th:each="user : ${blacklistedUsers}">
+
+                            <a th:href="'https://www.instagram.com/' + ${user.username}" target="_blank">
+                                <img
+                                    th:src="${user.profilePicUrl}" alt=" " style="width: 45px; padding-right: 10px"/><span
+                                    th:text="${user.username}"></span> </a>
+                            <button type="button" class="btn btn-danger" style="float: right"
+                                    th:onclick="'javascript:deleteblocked(\'' + ${user.username} + '\')'"><i
+                                    class="fa fa-trash"></i></button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

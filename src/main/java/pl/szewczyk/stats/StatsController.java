@@ -81,6 +81,7 @@ public class StatsController {
                 " userlikes, commentscount, userfollowed, username, locationname, userprofileimage " +
                 "from instabot.media m join instabot.statistics s on m.stat_id = s.id " +
                 "where to_char(s.time, 'yyyy-mm-dd hh24') = :id " +
+                "   and s.projectid = :projectid " +
                 "group BY link, mediaid, thumbnailuri, tags, createddate, " +
                 "userlikes, commentscount, userfollowed, username, locationname, userprofileimage " +
                 "order by createddate desc " +
@@ -88,11 +89,11 @@ public class StatsController {
                         "offset :offset" : "");
         Query query = em.createNativeQuery(sqlQuery);
         query.setParameter("id", id);
+        query.setParameter("projectid", project.getId());
         if (project.isOnlineStats())
             query.setParameter("offset", offset);
 
         List<Object[]> objects = query.getResultList();
-        log.info("project.isOnlineStats() " + project.isOnlineStats());
         List<Media> medias = new ArrayList<>();
         Set<Thread> threads = new HashSet<>(medias.size());
         for (Object[] o : objects) {
@@ -110,20 +111,25 @@ public class StatsController {
                         me.postaddict.instagram.scraper.domain.Media data = instaConstants.getInstagramAnonymous().getMediaByCode(
                                 me.postaddict.instagram.scraper.domain.Media.getCodeFromId(media.getMediaId()));
 
+                        Instagram instagram = instaConstants.getInstagramLoggedIn(project.getInstagramAccount());
                         try {
-                            List<Account> list = instaConstants.getInstagramAnonymous().getUserLikesByMediaCode(data.shortcode);
+                            List<Account> list = instagram.getUserLikesByMediaCode(data.shortcode);
                             media.setLiked(list.stream().filter(account -> account.username.equals(project.getInstagramAccount())).count() > 0);
                             media.setUserLikes(data.likesCount);
                         } catch (Exception e) {
+                            log.info("NOT LIKE " + e.getMessage());
                         }
                         try {
-                            List<Comment> comments = instaConstants.getInstagramAnonymous().getCommentsByMediaCode(data.shortcode, 999);
+                            List<Comment> comments = instagram.getCommentsByMediaCode(data.shortcode, 999);
                             media.setCommented(comments.stream().filter(comment -> comment.user.username.equals(project.getInstagramAccount())).count() > 0);
                             media.setCommentsCount(data.commentsCount);
                         } catch (Exception e) {
+                            log.info("NOT COMMENT " + e.getMessage());
                         }
-                        Account account = instaConstants.getInstagramAnonymous().getAccountByUsername(data.owner.username);
-                        media.setUserFollowed(account.followsCount);
+                        Account account = instagram.getAccountByUsername(data.owner.username);
+                        log.info("ACC followed " + account.followedByCount);
+                        media.setUserFollowed(account.followedByCount);
+                        log.info("ACC followed " + media.getUserFollowed());
                         media.setUserName(account.username);
 
                         media.setLocationName(data.locationName);
@@ -165,9 +171,10 @@ public class StatsController {
     @GetMapping("activity/tags")
     public String getTags(Model model, HttpServletRequest request) {
         Project project = (Project) request.getSession(false).getAttribute("project");
+        System.out.println(project);
         List<Object[]> ret = em.createNativeQuery("select distinct UPPER (x.tags), count(DISTINCT x.mediaid) mcnt, " +
                 "  (select count(DISTINCT m.mediaid) from instabot.media m JOIN instabot.statistics s ON m.stat_id = s.id where projectid = :projectid) acnt " +
-                "from (select unnest(string_to_array(m.tags, ',')) tags, m.mediaid, m.id from instabot.media m) x " +
+                "from (select unnest(string_to_array(m.tags, ',')) tags, m.mediaid, m.id from instabot.media m JOIN instabot.statistics s ON m.stat_id = s.id where projectid = :projectid) x " +
                 "group by UPPER(x.tags) " +
                 "HAVING count(DISTINCT x.mediaid) > ((select count(DISTINCT m.mediaid) from instabot.media m JOIN instabot.statistics s ON m.stat_id = s.id where projectid = :projectid)/100) " +
                 "order by mcnt desc").setParameter("projectid", project.getId()).getResultList();

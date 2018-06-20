@@ -32,7 +32,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="project : ${projectList}"
-                    th:class="${#authentication.name.equals(project.owner?.email) ? (project.status ? 'success' : 'warning') : 'active'}">
+                    th:class="${#authentication.name.equals(project.owner?.email) ? (project.status ? 'success' : 'warning') : ''}">
                     <td th:text="${project.name}"></td>
                     <td th:text="${#dates.format(project.created, #messages.msg('app.dateformat'))}"></td>
                     <td th:text="${project.customer}"></td>
@@ -42,20 +42,30 @@
                         <a th:if="${#authentication.name.equals(project.owner?.email) and !project.status}"
                            class="btn btn-sm btn-success"
                            th:href="@{/start(id=${project.id})}" href="#"
-                           th:value="${project.id}"><i class="fa fa-play"></i>Uruchom </a>
+                           th:value="${project.id}"><i class="fa fa-play"></i> </a>
+
+                        <form th:action="@{/kill(id=${project.id})}" th:method="post" style="float: left; " th:if="${#authentication.name.equals(project.owner?.email) and project.status}">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fa fa-square"></i>
+                            </button>
+                        </form>
+
 
                         <a th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')') or #authentication.name.equals(project.owner?.email)}"
                            class="btn btn-success btn-sm"
                            th:href="@{/project(id=${project.id})}" href="#" data-th-action="edit"
                            th:value="${project.id}">
                             <i class="fa fa-edit"></i>
-                            <span th:text="#{projects.table.edit}"></span>
                         </a>
 
                         <a class="btn btn-success btn-sm"
-                           th:href="@{/stats(id=${project.id})}" href="#" >
-                            <i class="fa fa-line-chart"></i> <span th:text="#{dashboard.project.stats}"></span></a>
+                           th:href="@{/stats(id=${project.id})}" href="#">
+                            <i class="fa fa-line-chart"></i></a>
 
+
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#myModal"
+                                th:onclick="'javascript:setprojectid(' + ${project.id} + ')'"><i
+                                class="fa fa-trash-o"></i></button>
                     </td>
                 </tr>
 
@@ -64,6 +74,43 @@
         </div>
 
 
+        <script type="text/javascript">
+            setprojectid = function (id) {
+                $('#projectid').val(id);
+            };
+
+            deleteProject = function () {
+                var id = $('#projectid').val();
+
+                $.ajax({
+                    type: "POST",
+                    url: '/projects/delete?id=' + id,
+                    headers: {'X-CSRF-TOKEN': $('input[name="_csrf"]').val()}
+                }).success(function () {
+                    location.reload();
+                });
+                console.log('deleted!');
+            };
+        </script>
+    </div>
+
+
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4>Czy na pewno usunąć?</h4>
+                    <span>Dane zostaną zarchiwizowane</span>
+                    <input type="hidden" id="projectid">
+                </div>
+                <div class="modal-footer">
+                    <a id="yes" href="#" onclick="deleteProject()" class="btn btn-danger" data-toggle="modal"
+                       data-target="#myModal"><i class="fa fa-check"></i>Tak</a>
+                    <a id="no" href="#" class="btn btn-success" data-toggle="modal"
+                       data-target="#myModal"><i class="fa fa-times"></i>Nie</a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

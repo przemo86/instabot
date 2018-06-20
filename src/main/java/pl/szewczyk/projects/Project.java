@@ -5,7 +5,9 @@ import pl.szewczyk.account.Account;
 import javax.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 @Entity
@@ -54,6 +56,9 @@ public class Project implements java.io.Serializable {
     @Column(name = "_comment")
     private boolean comment;
 
+    @Column(name = "_follow")
+    private boolean follow;
+
     private String blackFileName;
 
     @Column(columnDefinition = "blacklisted text")
@@ -66,6 +71,22 @@ public class Project implements java.io.Serializable {
     private String locationId;
 
     private Integer mediaAge;
+
+    private boolean deleted = false;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "project_blusers", joinColumns = @JoinColumn(name = "project_id"))
+    @Column(name = "id")
+    private Set<BlacklistedUser> blacklistedUsers = new HashSet<>();
+
+    private boolean capping = true;
+
+    private Integer cappingTime;
+
+    private Integer minObserved = 0;
+
+private boolean likeMentions;
+
 
     protected Project() {
 
@@ -179,6 +200,14 @@ public class Project implements java.io.Serializable {
         this.comment = comment;
     }
 
+    public boolean isFollow() {
+        return follow;
+    }
+
+    public void setFollow(boolean follow) {
+        this.follow = follow;
+    }
+
     public String getInstagramAccount() {
         return instagramAccount;
     }
@@ -243,6 +272,54 @@ public class Project implements java.io.Serializable {
         this.onlineStats = onlineStats;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public Set<BlacklistedUser> getBlacklistedUsers() {
+        return blacklistedUsers;
+    }
+
+    public void setBlacklistedUsers(Set<BlacklistedUser> blacklistedUsers) {
+        this.blacklistedUsers = blacklistedUsers;
+    }
+
+    public boolean isCapping() {
+        return capping;
+    }
+
+    public void setCapping(boolean capping) {
+        this.capping = capping;
+    }
+
+    public Integer getCappingTime() {
+        return cappingTime;
+    }
+
+    public void setCappingTime(Integer cappingTime) {
+        this.cappingTime = cappingTime;
+    }
+
+    public Integer getMinObserved() {
+        return minObserved;
+    }
+
+    public void setMinObserved(Integer minObserved) {
+        this.minObserved = minObserved;
+    }
+
+    public boolean isLikeMentions() {
+        return likeMentions;
+    }
+
+    public void setLikeMentions(boolean likeMentions) {
+        this.likeMentions = likeMentions;
+    }
+
     public String getRandomComment() {
         if (comments.size() == 0)
             return "";
@@ -262,5 +339,37 @@ public class Project implements java.io.Serializable {
         rand = (Math.random() * comments.size());
         System.out.println("RETTT " + rand);
         return comments.get(rand.intValue()).getComment();
+    }
+
+    @Override
+    public String toString() {
+        return "Project{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", created=" + created +
+                ", customer='" + customer + '\'' +
+                ", instagramAccount='" + instagramAccount + '\'' +
+                ", status=" + status +
+                ", owner=" + owner +
+                ", includeHashtags='" + includeHashtags + '\'' +
+                ", excludeHashtags='" + excludeHashtags + '\'' +
+                ", comments=" + comments +
+                ", likeFrequency=" + likeFrequency +
+                ", hashtagSearch=" + hashtagSearch +
+                ", like=" + like +
+                ", comment=" + comment +
+                ", follow" + follow +
+                ", blackFileName='" + blackFileName + '\'' +
+                ", blacklisted='" + blacklisted + '\'' +
+                ", onlineStats=" + onlineStats +
+                ", locationName='" + locationName + '\'' +
+                ", locationId='" + locationId + '\'' +
+                ", mediaAge=" + mediaAge +
+                ", deleted=" + deleted +
+                ", blacklistedUsers=" + blacklistedUsers +
+                ", capping=" + capping +
+                ", cappingTime=" + cappingTime +
+                ", minObserved=" + minObserved +
+                '}';
     }
 }

@@ -32,6 +32,7 @@ public class Account implements java.io.Serializable {
 	private Date expires;
 
 	private boolean locked = false;
+	private boolean deleted = false;
 
 	@ManyToMany
 	private Set<InstaUser> instaUsers = new HashSet<>();
@@ -113,5 +114,13 @@ public class Account implements java.io.Serializable {
 
 	public void setInstaUsers(Set<InstaUser> instaUsers) {
 		this.instaUsers = instaUsers;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 }

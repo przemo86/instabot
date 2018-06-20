@@ -153,6 +153,17 @@
                                 </select>
                             </div>
                         </div>
+
+
+                        <div class="form-group row">
+                            <label for="media-age" class="col-lg-4 control-label">Min. ilość obserwujących</label>
+                            <div class="col-lg-8">
+                                <input type="number" min="0" class="form-control"
+                                       th:field="*{minObserved}" style="width: 100%; text-align: end;">
+                            </div>
+                        </div>
+
+
                     </div>
 
 
@@ -169,9 +180,18 @@
                                     <div id="resultsBlock">
 
                                     </div>
-                                    <textarea placeholder="Treść komentarza" id="tresc"></textarea>
-                                    <input type="number" placeholder="Priorytet" min="1" max="10" id="priority">
-                                    <input type="button" value="Dodaj" id="dodaj_komentarz">
+                                    <div class="container-fluid" style="padding: 0">
+                                        <div class="row">
+                                            <div class="col-lg-6"><textarea placeholder="Treść komentarza"
+                                                                            id="tresc"></textarea></div>
+                                            <div class="col-lg-4"><input type="number" placeholder="Priorytet" min="1" class="form-control"
+                                                                         max="10" id="priority" style="width: 120px; text-align: end">
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <button id="dodaj_komentarz"><i class="fa fa-plus"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -208,9 +228,9 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="form-group row">
+                            <div class="row">
                                 <div class="col-lg-6">
-                                    <label class="row control-label"
+                                    <label class="row"
                                            th:text="#{project.hashtag.search}">
                                     </label>
                                     <div class="row setting-control" th:each="val : ${enumValues}">
@@ -219,8 +239,9 @@
                                     </div>
 
                                 </div>
+
                                 <div class="col-lg-6">
-                                    <label class="row control-label"
+                                    <label class="row"
                                            th:text="#{project.activity}">
                                     </label>
 
@@ -232,12 +253,43 @@
 
                                     <div class="row setting-control">
                                         <input type="checkbox" th:text="#{project.activity.like}"
-                                               onchange="$('#like-frequency').prop('disabled', !this.checked)"
                                                th:field="*{like}"/>
+                                    </div>
+
+                                    <div class="row setting-control">
+                                        <input type="checkbox" th:text="#{project.activity.likeMentions}"
+                                               th:field="*{likeMentions}"/>
+                                    </div>
+
+                                    <div class="row setting-control">
+                                        <input type="checkbox" th:text="#{project.activity.follow}"
+                                               th:field="*{follow}"/>
                                     </div>
 
                                 </div>
 
+                                <div class="col-lg-6">
+                                    <div class="row">
+                                        <span>&nbsp;</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="row">Capping</label>
+                                    </label>
+
+
+                                    <div class="row setting-control">
+                                        <div class="col-lg-4">
+                                        <input type="checkbox"
+                                               th:field="*{capping}"/>Capping
+                                        </div>
+
+                                        <div class="col-lg-8"><input type="number" placeholder="minut" min="1" class="form-control"
+                                                                     th:field="*{cappingTime}" style="width: 120px; text-align: end">
+                                        </div>
+                                    </div>
+
+                                </div>
                             </div>
 
 
@@ -247,26 +299,33 @@
                         <div class="row project-setting-row input-border">
 
 
-
                             <div class="row">
-                                <div class="col-lg-12">
+                                <div class="col-lg-6">
                                     <p class="lead text-left">
                                         <span>Statystyki</span>
                                     </p>
-                                </div>
-                            </div>
-
-
-
-                            <div class="form-group row">
-
-                                <div class="col-lg-6">
-                                    <label class="row"><input type="checkbox" th:field="*{onlineStats}"> Pobieraj aktualne
+                                    <label class="row"><input type="checkbox" th:field="*{onlineStats}"> Pobieraj
+                                        aktualne
                                         dane przy przeglądaniu statystyk</label>
                                 </div>
+
+                                <div class="col-lg-6">
+
+                                    <div class="form-group row">
+                                        <label for="blocked" class="col-lg-2 control-label">Dodaj</label>
+                                        <div class="col-lg-10 input-group ui-widget">
+                                            <input type="text" class="form-control autocomplete" id="blocked"/>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-default" type="button"><i class="fa fa-plus"></i> </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style="height: 10px"></div>
+                                    <div id="blocked_wrapper">
+
+                                    </div>
+                                </div>
                             </div>
-
-
 
 
                         </div>
@@ -295,7 +354,7 @@
     $('#projectActive').bootstrapSwitch({'onColor': 'scaleefect', 'inverse': true});
 
 
-    $(".autocomplete").autocomplete({
+    $("#istagram-location").autocomplete({
 
         source: function (request, response) {
             var loc = $('#istagram-location').val();
@@ -323,6 +382,64 @@
         }
 
     });
+
+    $("#blocked").autocomplete({
+
+        source: function (request, response) {
+            var loc = $('#blocked').val();
+            $.ajax({
+                url: '/blockedusers',
+                type: 'GET',
+                data: {
+                    "search": loc
+                },
+                success: function (data) {
+                    response($.map(data, function (item) {
+                        return {
+                            label: item.username,
+                            value: item.profilePicUrl
+                        }
+                    }))
+                }
+            });
+        },
+        minLength: 3,
+        select: function (event, ui) {
+            event.preventDefault();
+            console.log(ui.item.label);
+            $.ajax({
+                url: '/blacklisted',
+                type: 'POST',
+                headers: {'X-CSRF-TOKEN': $('input[name="_csrf"]').val()},
+                data: {
+                    "username": ui.item.label,
+                    "picture": ui.item.value
+                }
+            }).success(function (data) {
+                $("#blocked_wrapper").html(data);
+                $('#blocked').val('');
+                $('a[href="#collapse1"]').click()
+            });
+        }
+
+    }).data("uiAutocomplete")._renderItem = function (ul, item) {
+        return $("<li />")
+            .data("item.autocomplete", item)
+            .append("<a><img src='" + item.value + "' alt=' ' style='width: 25px'/>" + item.label + "</a>")
+            .appendTo(ul);
+    };
+
+    deleteblocked = function (username) {
+        $.ajax({
+            url: '/blacklisted?username=' + username,
+            type: 'DELETE',
+            headers: {'X-CSRF-TOKEN': $('input[name="_csrf"]').val()},
+        }).success(function (data) {
+            $("#blocked_wrapper").html(data);
+            $('#blocked').val('');
+            $('a[href="#collapse1"]').click()
+        });
+    };
 
 
     $('#dodaj_komentarz').on('click', (function () {
@@ -358,6 +475,7 @@
                 $("#resultsBlock").html(data);
             }
         });
+        return false;
     }));
 
     function removeComment(index) {
@@ -378,6 +496,7 @@
     }
 
     $("#resultsBlock").load("/comments");
+    $("#blocked_wrapper").load("/blacklisted");
 </script>
 
 </body>

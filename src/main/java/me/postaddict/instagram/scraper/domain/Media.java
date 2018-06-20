@@ -1,6 +1,7 @@
 package me.postaddict.instagram.scraper.domain;
 
 import me.postaddict.instagram.scraper.Endpoint;
+import me.postaddict.instagram.scraper.Instagram;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -168,10 +169,11 @@ public class Media {
 
     public static Media fromLocationPage(Map mediaMap) {
         Media instance = new Media();
-        instance.shortcode = (String) mediaMap.get("code");
+        mediaMap = (Map) mediaMap.get("node");
+        instance.shortcode = (String) mediaMap.get("shortcode");
         instance.link = Endpoint.getMediaPageLinkByCode(instance.shortcode);
-        instance.commentsCount = ((Double) ((Map) mediaMap.get("comments")).get("count")).intValue();
-        instance.likesCount = ((Double) ((Map) mediaMap.get("likes")).get("count")).intValue();
+        instance.commentsCount = ((Double) ((Map) mediaMap.get("edge_media_to_comment")).get("count")).intValue();
+        instance.likesCount = ((Double) ((Map) mediaMap.get("edge_liked_by")).get("count")).intValue();
         instance.ownerId = (String) ((Map) mediaMap.get("owner")).get("id");
         try {
             instance.caption = (String) mediaMap.get("caption");
@@ -179,7 +181,7 @@ public class Media {
             instance.caption = "";
         }
 
-        instance.createdTime = ((Double) mediaMap.get("date")).longValue();
+        instance.createdTime = ((Double) mediaMap.get("taken_at_timestamp")).longValue();
         fixDate(instance);
 //        fillImageUrls(instance, (String) ((Map) ((List) mediaMap.get("thumbnail_resources")).get(0)).get("src"));
         instance.type = TYPE_IMAGE;

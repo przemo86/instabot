@@ -50,7 +50,7 @@ public class Media implements Serializable {
     @Column(name = "action_time")
     private Date actionTime;
 
-    private String userName;
+    private long userId;
 
     private String userProfileImage;
 
@@ -63,6 +63,9 @@ public class Media implements Serializable {
     private String locationName;
 
     private String myComment;
+
+    @Transient
+    private String userName;
 
     public Media() {
     }
@@ -85,11 +88,11 @@ public class Media implements Serializable {
         this.caption = mediaFeedData.caption;
         this.myComment = myComment;
         this.userLikes = mediaFeedData.likesCount;
-//        this.userName = mediaFeedData.owner.username;
-//        this.locationName = mediaFeedData.locationName;
-//        this.userProfileImage = mediaFeedData.owner.profilePicUrl;
+        this.userName = mediaFeedData.owner.username;
+        this.userId = mediaFeedData.owner.id;
+        this.locationName = mediaFeedData.locationName;
         this.commentsCount = mediaFeedData.commentsCount;
-//        this.userFollowed = mediaFeedData.owner.followedByCount;
+        this.userFollowed = mediaFeedData.owner.followedByCount;
     }
 
 
@@ -141,12 +144,12 @@ public class Media implements Serializable {
         this.tags = tags;
     }
 
-    public String getUserName() {
-        return userName;
+    public long getUserId() {
+        return userId;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserId(long userId) {
+        this.userId = userId;
     }
 
     public String getUserProfileImage() {
@@ -275,4 +278,13 @@ public class Media implements Serializable {
 //                ", myComment='" + myComment + '\'' +
 //                '}';
 //    }
+
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 }

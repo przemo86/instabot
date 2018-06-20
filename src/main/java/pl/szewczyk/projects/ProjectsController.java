@@ -2,16 +2,14 @@ package pl.szewczyk.projects;
 
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.szewczyk.account.AccountRepository;
 import pl.szewczyk.instagram.InstaUser;
@@ -20,8 +18,11 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Created by przem on 11.09.2017.
@@ -53,7 +54,7 @@ public class ProjectsController {
 
     @GetMapping("projects")
     public String listProjects(Model model) {
-        model.addAttribute("projectList", projectRepository.findAll(new Sort(Sort.Direction.ASC, "name")));
+        model.addAttribute("projectList", projectRepository.findAll(new Sort(Sort.Direction.ASC, "name")).stream().filter(s -> !s.isDeleted()).collect(Collectors.toList()));
 
         return "home/projects";
     }
@@ -111,6 +112,64 @@ public class ProjectsController {
         model.addAttribute("comments", comments);
 
         return "fragments/components :: project-comment-list";
+    }
+
+    @GetMapping(value = "blacklisted")
+    public String getBlacklisted(HttpServletRequest request, Model model) {
+        System.out.println("vlack");
+        Set<BlacklistedUser> blacklistedUsers;
+        Project project;
+        if ((project = (Project) request.getSession(false).getAttribute("project")) != null) {
+            blacklistedUsers = project.getBlacklistedUsers();
+        } else {
+            blacklistedUsers = new HashSet<>();
+        }
+
+        model.addAttribute("blacklistedUsers", blacklistedUsers);
+
+        return "fragments/components :: blacklisted";
+    }
+
+    @PostMapping(value = "blacklisted")
+    public String addBlacklisted(HttpServletRequest request, Model model, @RequestParam(name = "username") String username, @RequestParam(name = "picture") String picture) {
+        System.out.println("vlack");
+        Set<BlacklistedUser> blacklistedUsers;
+        Project project;
+        if ((project = (Project) request.getSession(false).getAttribute("project")) != null) {
+            blacklistedUsers = project.getBlacklistedUsers();
+        } else {
+            blacklistedUsers = new HashSet<>();
+        }
+
+        BlacklistedUser b = new BlacklistedUser();
+        b.setProfilePicUrl(picture);
+        b.setUsername(username);
+
+        if (project != null)
+            project.getBlacklistedUsers().add(b);
+
+        model.addAttribute("blacklistedUsers", blacklistedUsers);
+        System.out.println("returning");
+        return "fragments/components :: blacklisted";
+    }
+
+    @DeleteMapping(value = "blacklisted")
+    public String deleteBlacklisted(HttpServletRequest request, Model model, @RequestParam(name = "username") String username) {
+        System.out.println("delete vlack");
+        Set<BlacklistedUser> blacklistedUsers = null;
+        Project project;
+        if ((project = (Project) request.getSession(false).getAttribute("project")) != null) {
+            blacklistedUsers = project.getBlacklistedUsers();
+        } else {
+            blacklistedUsers = new HashSet<>();
+        }
+
+
+        blacklistedUsers.removeAll(blacklistedUsers.stream().filter(b -> b.getUsername().equals(username)).collect(Collectors.toList()));
+
+        model.addAttribute("blacklistedUsers", blacklistedUsers);
+        System.out.println("returning");
+        return "fragments/components :: blacklisted";
     }
 
     @PostMapping(value = "addcomment")
@@ -172,7 +231,8 @@ public class ProjectsController {
         }
         Project project = (Project) request.getSession().getAttribute("project");
 
-        System.out.println(project.getComments().size());
+        System.out.println("-----------");
+        System.out.println(project.getBlacklistedUsers().size());
         if (project == null)
             project = new Project();
         project = projectForm.toEntity(project);
@@ -181,8 +241,12 @@ public class ProjectsController {
 
         project.setOwner(accountRepository.findOneByEmail(principal.getName()));
         try {
+            System.out.println("SAVE PROJECT " + project);
             Project finalProject = projectRepository.save(project);
-            project.getComments().stream().forEach(c -> {c.setProject(finalProject); commentRepository.save(c);});
+            project.getComments().stream().forEach(c -> {
+                c.setProject(finalProject);
+                commentRepository.save(c);
+            });
         } catch (Exception e) {
             log.info("POLECIAL JAKIS BLAD " + e.getMessage());
         }
@@ -215,5 +279,19 @@ public class ProjectsController {
         if (project.isStatus()) {
             projectScheduleRunner.startProject(project);
         }
+    }
+
+    @PostMapping(path = "projects/delete", params = "id")
+    public String deleteProject(@RequestParam(name = "id") Long id) {
+        System.out.println("pppppppppppppppppp");
+        System.out.println(id);
+
+        Project project = projectRepository.znajdz(id);
+        System.out.println(project);
+        project.setDeleted(true);
+
+        projectRepository.save(project);
+
+        return "redirect:/projects";
     }
 }

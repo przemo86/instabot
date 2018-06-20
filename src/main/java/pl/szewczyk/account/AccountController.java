@@ -9,6 +9,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import pl.szewczyk.instagram.InstaConstants;
 import pl.szewczyk.instagram.InstaUser;
+import pl.szewczyk.projects.Project;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -26,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Controller
 public class AccountController {
@@ -52,7 +54,7 @@ public class AccountController {
 
     @GetMapping("/users")
     public String listUsers(Model model) {
-        model.addAttribute("userList", accountRepository.findAll());
+        model.addAttribute("userList", accountRepository.findAll().stream().filter(s -> !s.isDeleted()).collect(Collectors.toList()));
         return "home/users";
     }
 
@@ -66,6 +68,18 @@ public class AccountController {
         model.addAttribute("userForm", userForm);
         request.getSession(false).setAttribute("userForm", userForm);
         return "home/userForm";
+    }
+
+    @PostMapping(path = "/users/delete", params = "email")
+    public String deleteUser(@RequestParam(name = "email") String email) {
+
+        Account account = accountRepository.findOneByEmail(email);
+        System.out.println(account);
+        account.setDeleted(true);
+
+        accountRepository.save(account);
+
+        return "redirect:/users";
     }
 
     @GetMapping(value = "/addInstaUser")
@@ -129,11 +143,12 @@ public class AccountController {
         accountRepository.save(account);
 
 
-
         return "redirect:users";
 
 
     }
+
+
 
     @RequestMapping(value = "/addnewinstauser", method = RequestMethod.POST)
     public String addInstaUser(Model model, @RequestParam(value = "insta_username", required = false) String username,
@@ -142,8 +157,8 @@ public class AccountController {
         me.postaddict.instagram.scraper.domain.Account acc;
 
         try {
-            log.info(username);
-            log.info(pass);
+//            log.info(username);
+//            log.info(pass);
             acc = instaConstants.instaLogin(username, pass);
         } catch (Exception e) {
             log.severe("e MESSAGE " + e.getMessage());

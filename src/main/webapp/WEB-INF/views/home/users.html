@@ -52,8 +52,11 @@
                     <td th:text="#{${user.role.description}}"></td>
                     <td>
                         <a href="#user" th:href="@{/user(id=${user.id})}" th:title="#{users.table.modify}"
-                           style="display: block;text-align: center;"
-                           class="glyphicon glyphicon-pencil" name="action" value="edit"></a>
+                           class="btn btn-default" name="action" value="edit"><i class="glyphicon glyphicon-pencil"></i>
+                        </a>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#myModal"
+                                th:onclick="'javascript:setuserid(\'' + ${user.email} + '\')'"><i
+                                class="fa fa-trash-o"></i></button>
 
                         <!--<a href="#user" th:href="@{/user}"-->
                         <!--th:title="#{${user.locked} ? users.table.lock : users.table.unlock}"-->
@@ -68,8 +71,44 @@
                 </tbody>
             </table>
 
-        </div>        </div>
+        </div>
+    </div>
 </div>
+<script type="text/javascript">
+    setuserid = function (id) {
+        $('#userid').val(id);
+    };
+
+    deleteUser = function () {
+        var id = $('#userid').val();
+
+        $.ajax({
+            type: "POST",
+            url: '/users/delete?email=' + id,
+            headers: {'X-CSRF-TOKEN': $('input[name="_csrf"]').val()}
+        }).success(function () {
+            location.reload();
+        });
+        console.log('deleted!');
+    };
+</script>
+
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Czy na pewno usunąć?</h4>
+                <span>Dane zostaną zarchiwizowane</span>
+                <input type="hidden" id="userid">
+            </div>
+            <div class="modal-footer">
+                <a id="yes" href="#" onclick="deleteUser()" class="btn btn-danger" data-toggle="modal"
+                   data-target="#myModal"><i class="fa fa-check"></i>Tak</a>
+                <a id="no" href="#" class="btn btn-success" data-toggle="modal"
+                   data-target="#myModal"><i class="fa fa-times"></i>Nie</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 </body>

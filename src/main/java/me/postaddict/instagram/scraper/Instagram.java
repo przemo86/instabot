@@ -1,9 +1,14 @@
 package me.postaddict.instagram.scraper;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import me.postaddict.instagram.scraper.domain.*;
 import me.postaddict.instagram.scraper.exception.InstagramAuthException;
 import okhttp3.*;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okio.BufferedSink;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +31,7 @@ public class Instagram implements AuthenticatedInsta {
 
     public Instagram(OkHttpClient httpClient) {
         this.httpClient = httpClient;
-        this.gson = new Gson();
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
     private Request withCsrfToken(Request request) {
@@ -42,13 +47,21 @@ public class Instagram implements AuthenticatedInsta {
 
         if (!cookies.isEmpty()) {
             Cookie cookie = cookies.get(0);
+            log.info("X-CSRFToken = " + cookie.value());
+            log.info("Cookie = csrftoken=" + cookie.value());
             request = request.newBuilder()
                     .addHeader("X-CSRFToken", cookie.value())
                     .addHeader("Cookie", "csrftoken=" + cookie.value())
                     .build();
 
             return request;
+        } else {
+            request = request.newBuilder()
+                    .addHeader("X-CSRFToken", "HYdN73I9ZOetPK11COXU3g7JE9KtT77q")
+                    .addHeader("Cookie", "csrftoken=HYdN73I9ZOetPK11COXU3g7JE9KtT77q")
+                    .build();
         }
+
         return request;
     }
 
@@ -86,14 +99,18 @@ public class Instagram implements AuthenticatedInsta {
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .post(formBody)
                 .build();
-
+        log.info("call");
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+        for (String header : response.headers().names()) {
+            log.info("H: " + header + "=" + response.header(header));
+        }
         String json = response.body().string();
         response.body().close();
+
         log.info("LOGIN1 response code " + response.code() + " response starts with " + json.charAt(0));
         if (response.code() == 200 && json.charAt(0) == '{') {
-            log.info(json);
-            log.info("===============");
+//            log.info(json);
+//            log.info("===============");
             if (gson.fromJson(json, Map.class).get("authenticated") == Boolean.FALSE) {
                 throw new InstagramAuthException("Wrong username or password");
             }
@@ -126,7 +143,7 @@ public class Instagram implements AuthenticatedInsta {
 
         log.info("LOGIN response code " + response.code() + " response starts with " + json.charAt(0));
         if (response.code() == 200 && json.charAt(0) == '{') {
-            log.info("SUPER \n" + json);
+            prettyPrintJson(json);
         }
 
         if (response.code() != 200 && num <= MAX_LOGIN) {
@@ -144,35 +161,68 @@ public class Instagram implements AuthenticatedInsta {
             throw new Exception("Nie zalogowalem");
         } else {
             try {
-                System.out.println("USER 1");
+                log.info("USER 1");
                 String user = (String) ((Map) gson.fromJson(json, Map.class).get("form_data")).get("username");
-                System.out.println("USER = " + user);
+                prettyPrintJson(user);
                 Account acc = getAccountByUsername(user);
-                System.out.println("ACC " + acc);
+
                 this.username = username;
                 return acc;
             } catch (Exception e) {
                 e.printStackTrace();
-                System.out.println(e.getMessage());
+                log.info(e.getMessage());
                 throw new Exception("Nie zalogowalem 2");
             }
         }
     }
 
-    public Account getAccountById(long id) throws IOException {
+    public Account getAccountById(Long id) throws IOException {
+
         Request request = new Request.Builder()
-                .url(Endpoint.getAccountJsonInfoLinkByAccountId(id))
+                .url(Endpoint.getUserSearchJsonLink(id))
                 .header("Referer", Endpoint.BASE_URL + "/")
                 .build();
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         String jsonString = response.body().string();
         response.body().close();
-        System.out.println(jsonString);
+        prettyPrintJson(jsonString);
         Map userJson = gson.fromJson(jsonString, Map.class);
+        if (userJson.containsKey("users")) {
+            return Account.fromLogin(((Map) ((List) userJson.get("users")).get(0)));
+        } else {
+            return getAccountByUsername((String) ((Map) ((Map) ((Map) ((Map) userJson.get("data")).get("user")).get("reel")).get("user")).get("username"));
 
-        String shortCode = (String) ((Map) ((Map) ((List) ((Map) ((Map) ((Map) userJson.get("data")).get("user")).get("edge_web_discover_media")).get("edges")).get(0)).get("node")).get("shortcode");
-        Media m = getMediaByCode(shortCode);
-        return m.owner;
+        }
+
+    }
+
+    public List<Account> searchAccounts(String search, int count) throws IOException {
+        Request request = new Request.Builder()
+                .url(Endpoint.getGeneralSearchJsonLink(search))
+                .build();
+
+
+        Response response = this.httpClient.newCall(request).execute();
+        String jsonString = response.body().string();
+        response.body().close();
+        List<Account> accounts = new ArrayList<>();
+        int i = 0;
+        for (Object m : ((List<Object>) gson.fromJson(jsonString, Map.class).get("users"))) {
+            if (i >= count)
+                break;
+
+            Map user = (Map) ((Map) m).get("user");
+
+            Account account = new Account();
+            account.profilePicUrl = (String) user.get("profile_pic_url");
+            account.username = (String) user.get("username");
+            accounts.add(account);
+            i++;
+        }
+
+
+        return accounts;
+
     }
 
     public Account getAccountByUsername(String username) throws IOException {
@@ -180,15 +230,12 @@ public class Instagram implements AuthenticatedInsta {
                 .url(Endpoint.getGeneralSearchJsonLink(username))
                 .build();
 
-        System.out.println("XXX");
         Response response = this.httpClient.newCall(request).execute();
         String jsonString = response.body().string();
+        log.info("GETACCOUNT " + username);
+        prettyPrintJson(jsonString);
         response.body().close();
-        System.out.println("XX   X" + response.code() + "   ");
-        System.out.println("XX   X" + ((Map)((List<Object>)gson.fromJson(jsonString, Map.class).get("users")).get(0)).get("user") + "   ");
-        String pk = (String) ((Map)((Map)((List<Object>)gson.fromJson(jsonString, Map.class).get("users")).get(0)).get("user")).get("pk");
-
-        return getAccountById(Long.parseLong(pk));
+        return Account.fromLogin((Map) ((List<Object>) gson.fromJson(jsonString, Map.class).get("users")).get(0));
     }
 
     public List<Media> getMedias(String username, int count) throws IOException {
@@ -233,6 +280,10 @@ public class Instagram implements AuthenticatedInsta {
         Response response = this.httpClient.newCall(request).execute();
         String jsonString = response.body().string();
         response.body().close();
+        log.info("ttttttttttttttttt");
+        prettyPrintJson(jsonString);
+        log.info("ttttttttttttttttt");
+
         Map pageMap = gson.fromJson(jsonString, Map.class);
         return Media.fromMediaPage((Map) ((Map) pageMap.get("graphql")).get("shortcode_media"));
     }
@@ -270,20 +321,20 @@ public class Instagram implements AuthenticatedInsta {
             Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
             String jsonString = response.body().string();
             response.body().close();
-
             Map locationMap = gson.fromJson(jsonString, Map.class);
-            List nodes = (List) ((Map) ((Map) locationMap.get("location")).get("media")).get("nodes");
+            List nodes = (List) ((Map) ((Map) ((Map) locationMap.get("graphql")).get("location")).get("edge_location_to_top_posts")).get("edges");
             for (Object node : nodes) {
                 if (index == count) {
                     return medias;
                 }
                 index++;
                 Map mediaMap = (Map) node;
+
                 Media media = Media.fromLocationPage(mediaMap);
                 medias.add(media);
             }
-            hasNext = (Boolean) ((Map) ((Map) ((Map) locationMap.get("location")).get("media")).get("page_info")).get("has_next_page");
-            offset = (String) ((Map) ((Map) ((Map) locationMap.get("location")).get("media")).get("page_info")).get("end_cursor");
+            hasNext = (Boolean) ((Map) ((Map) ((Map) ((Map) locationMap.get("graphql")).get("location")).get("edge_location_to_top_posts")).get("page_info")).get("has_next_page");
+            offset = (String) ((Map) ((Map) ((Map) ((Map) locationMap.get("graphql")).get("location")).get("edge_location_to_top_posts")).get("page_info")).get("end_cursor");
         }
         return medias;
     }
@@ -304,7 +355,7 @@ public class Instagram implements AuthenticatedInsta {
             Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
             String jsonString = response.body().string();
             response.body().close();
-            System.out.println("Endpoint.getMediasJsonByTagLink(tag, maxId) " + Endpoint.getMediasJsonByTagLink(tag, maxId));
+            log.info("Endpoint.getMediasJsonByTagLink(tag, maxId) " + Endpoint.getMediasJsonByTagLink(tag, maxId));
             Map tagMap = gson.fromJson(jsonString, Map.class);
 
             List nodes = (List) ((Map) ((Map) ((Map) tagMap.get("graphql")).get("hashtag")).get("edge_hashtag_to_media")).get("edges");
@@ -361,7 +412,7 @@ public class Instagram implements AuthenticatedInsta {
         log.info("response code " + response.code());
         String jsonString = response.body().string();
         response.body().close();
-        log.info("JSON " + jsonString);
+        prettyPrintJson(jsonString);
         Map commentsMap = gson.fromJson(jsonString, Map.class);
         List nodes = (List) ((Map) ((Map) ((Map) commentsMap.get("data")).get("shortcode_media")).get("edge_media_to_comment")).get("edges");
         for (Object node : nodes) {
@@ -386,7 +437,8 @@ public class Instagram implements AuthenticatedInsta {
         Response response = this.httpClient.newCall(request).execute();
         log.info("response code " + response.code());
         String jsonString = response.body().string();
-        log.info("JSON " + jsonString);
+        log.info("JSON ");
+        prettyPrintJson(jsonString);
         response.body().close();
         Map commentsMap = gson.fromJson(jsonString, Map.class);
         if (!commentsMap.get("status").equals("ok"))
@@ -528,7 +580,7 @@ public class Instagram implements AuthenticatedInsta {
 
         Map map = gson.fromJson(jsonString, Map.class);
         List items = (List) map.get("places");
-        System.out.println(map.get("places"));
+        prettyPrintJson(jsonString);
 
 
         for (Object item : items) {
@@ -571,7 +623,8 @@ public class Instagram implements AuthenticatedInsta {
         basePage();
         Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
         String jsonString = response.body().string();
-        log.info("COMMENTED\n" + jsonString);
+        log.info("COMMENTED\n");
+        prettyPrintJson(jsonString);
         log.info("STATUS CODE: " + response.code());
         if (response.code() == 403) {
             throw new Exception(jsonString);
@@ -604,4 +657,70 @@ public class Instagram implements AuthenticatedInsta {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    private void prettyPrintJson(String uglyJson) {
+        JsonParser jp = new JsonParser();
+        JsonElement je = jp.parse(uglyJson);
+        String prettyJsonString = gson.toJson(je);
+        log.info(prettyJsonString);
+    }
+
+    public boolean followUser(String userId) {
+        Request request = new Request.Builder()
+                .url(Endpoint.getFollowUserLink(userId))
+                .header("Referer", Endpoint.BASE_URL + "/")
+                .header("X-Instagram-AJAX", "x")
+                .post(new FormBody.Builder().build())
+                .build();
+
+
+        log.info("NO TO FOLLOW " + Endpoint.getFollowUserLink(userId));
+        try {
+            Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+            String jsonString = response.body().string();
+            prettyPrintJson(jsonString);
+            response.body().close();
+            if (gson.fromJson(jsonString, Map.class).get("result").toString().equals("following")) {
+                if (gson.fromJson(jsonString, Map.class).get("status").toString().equals("ok")) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            log.severe(e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+
+    }
+
+//    public List<Comment> getMentionComment() {
+//        String url = Endpoint.COMMENTS_WITH_MENTIONS;
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .header("Referer", Endpoint.getMediaPageLinkByCode(code) + "/")
+//                .post(new FormBody.Builder().build())
+//                .build();
+//
+//
+//        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+//        String json = response.body().string();
+//        log.info("STATUS = " + response.code());
+//        response.body().close();
+//    }
+//
+//    public void likeMenttions() {
+//        String url = Endpoint.getMediaLikeLink(Media.getIdFromCode(code));
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .header("Referer", Endpoint.getMediaPageLinkByCode(code) + "/")
+//                .post(new FormBody.Builder().build())
+//                .build();
+//
+//
+//        Response response = this.httpClient.newCall(withCsrfToken(request)).execute();
+//        String json = response.body().string();
+//        log.info("STATUS = " + response.code());
+//        response.body().close();
+//    }
 }

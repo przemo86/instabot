@@ -6,6 +6,7 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pl.szewczyk.config.DailyNotifier;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -49,6 +50,32 @@ public class ProjectScheduleRunner {
             }
         }
 
+        try {
+            initSendMailService();
+        } catch (Exception e) {
+            log.severe(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void initSendMailService() {
+        JobDetail job = newJob(DailyNotifier.class)
+                .withIdentity("Daily Notifier")
+                .build();
+
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity("Daily Notifier")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 11 ? * * *"))
+                .build();
+
+        try {
+            log.severe("SCHEDULINH JOB");
+            scheduler.scheduleJob(job, trigger);
+            log.severe("SCHEDULINH JOB OK");
+        } catch (SchedulerException e) {
+            log.severe("SCHEDULINH JOB GONE WILD");
+            e.printStackTrace();
+        }
     }
 
     @PreDestroy
